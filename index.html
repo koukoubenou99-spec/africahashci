@@ -71,25 +71,28 @@ animation: ticker 15s linear infinite;
 <canvas id="bgCanvas"></canvas>
 <div class="container" id="app"></div>
 <script>
-// --- ARRIÈRE-PLAN: OISEAUX DORÉS & ŒUFS ---
+// --- ARRIÈRE-PLAN : oiseaux dorés + œufs ---
 const canvas=document.getElementById("bgCanvas");
 const ctx=canvas.getContext("2d");
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
+function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+window.addEventListener('resize',resize); resize();
 
 class Egg{
 constructor(x,y){
-this.x=x;
-this.y=y;
-this.size=5+Math.random()*5;
+this.x=x; this.y=y;
+this.size=8+Math.random()*6;
 this.speed=1+Math.random()*2;
+this.glow=Math.random()*0.8+0.2;
 }
 update(){this.y+=this.speed;}
 draw(){
+ctx.save();
+ctx.shadowColor="gold"; ctx.shadowBlur=10*this.glow;
 ctx.fillStyle="#FFD700";
 ctx.beginPath();
 ctx.ellipse(this.x,this.y,this.size,this.size*1.2,0,0,2*Math.PI);
 ctx.fill();
+ctx.restore();
 }
 }
 
@@ -97,34 +100,32 @@ class Bird{
 constructor(){
 this.x=Math.random()*canvas.width;
 this.y=Math.random()*canvas.height/2;
-this.vx=1+Math.random()*2;
+this.vx=1+Math.random()*3;
 this.eggTimer=0;
 this.eggs=[];
 }
 update(){
-this.x+=this.vx;
-this.eggTimer++;
-if(this.eggTimer>200){
-this.eggs.push(new Egg(this.x,this.y));
-this.eggTimer=0;
-}
+this.x+=this.vx; this.eggTimer++;
+if(this.eggTimer>150){this.eggs.push(new Egg(this.x,this.y+10)); this.eggTimer=0;}
 if(this.x>canvas.width) this.x=-50;
-this.eggs.forEach((e,i)=>{e.update();if(e.y>canvas.height)e.splice(i,1)});
+this.eggs.forEach((e,i)=>{e.update(); if(e.y>canvas.height) this.eggs.splice(i,1);});
 }
 draw(){
-ctx.fillStyle="#FFD700";
+ctx.save();
+ctx.shadowColor="gold"; ctx.shadowBlur=10;
+ctx.fillStyle="gold";
 ctx.beginPath();
 ctx.moveTo(this.x,this.y);
-ctx.lineTo(this.x-10,this.y+5);
-ctx.lineTo(this.x-5,this.y-5);
-ctx.closePath();
-ctx.fill();
+ctx.lineTo(this.x-15,this.y+7);
+ctx.lineTo(this.x-7,this.y-7);
+ctx.closePath(); ctx.fill();
+ctx.restore();
 this.eggs.forEach(e=>e.draw());
 }
 }
 
 let birds=[];
-for(let i=0;i<5;i++) birds.push(new Bird());
+for(let i=0;i<7;i++) birds.push(new Bird());
 
 function animate(){
 ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -133,7 +134,7 @@ requestAnimationFrame(animate);
 }
 animate();
 
-// --- INTERFACE UTILISATEUR ---
+// --- Interface utilisateur ---
 let app=document.getElementById("app")
 let user=localStorage.getItem("user")
 let balance=parseFloat(localStorage.getItem("balance"))||0
@@ -158,7 +159,7 @@ html+='</div>'
 return html
 }
 
-// --- Connexion utilisateur ---
+// --- Connexion ---
 function home(){app.innerHTML=`
 <h1>AfricaHash Mining Pro</h1>
 <p>Simulation professionnelle crypto</p>

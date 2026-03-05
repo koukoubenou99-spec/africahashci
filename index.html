@@ -12,13 +12,11 @@ background:#0f172a;
 color:white;
 text-align:center;
 }
-
 .container{
 max-width:600px;
 margin:auto;
 padding:20px;
 }
-
 button{
 padding:12px 20px;
 margin:5px;
@@ -27,7 +25,6 @@ border-radius:8px;
 font-weight:bold;
 cursor:pointer;
 }
-
 input{
 padding:10px;
 border-radius:6px;
@@ -35,15 +32,30 @@ border:none;
 margin:10px;
 width:80%;
 }
-
 .machine{
 background:#1e293b;
 padding:15px;
 margin:10px;
 border-radius:10px;
 }
-
 .btn-wave{background:#1c7ed6;color:white}
+#ticker{
+background:#1e293b;
+padding:10px;
+margin-bottom:15px;
+border-radius:10px;
+overflow:hidden;
+white-space:nowrap;
+}
+#ticker span{
+display:inline-block;
+padding-right:50px;
+animation: ticker 15s linear infinite;
+}
+@keyframes ticker{
+0% {transform: translateX(100%);}
+100% {transform: translateX(-100%);}
+}
 </style>
 </head>
 <body>
@@ -68,6 +80,24 @@ let machines=[
 {price:200000,monthly:560000}
 ]
 
+// --- Bande de simulation dépôts/retraits ---
+let tickerMessages=[
+"Jean vient de déposer 10 000 FCFA via Wave",
+"Marie a retiré 5 000 FCFA",
+"Kouadio vient de déposer 50 000 FCFA via Wave",
+"Fatou a retiré 20 000 FCFA",
+"Samuel vient de déposer 15 000 FCFA via Wave"
+]
+function renderTicker(){
+let tickerHTML='<div id="ticker">'
+tickerMessages.forEach(msg=>{
+tickerHTML+='<span>'+msg+'</span>'
+})
+tickerHTML+='</div>'
+return tickerHTML
+}
+
+// --- Pages ---
 function home(){
 app.innerHTML=`
 <h1>AfricaHash Mining Pro</h1>
@@ -81,15 +111,31 @@ app.innerHTML=`
 <h2>Connexion</h2>
 <input id="username" placeholder="Nom utilisateur">
 <br>
+<input id="password" type="password" placeholder="Mot de passe">
+<br>
 <button onclick="login()">Se connecter</button>
 `
 }
 
 function login(){
 let name=document.getElementById("username").value
-if(name==""){
-alert("Entrez un nom")
+let pass=document.getElementById("password").value
+if(name=="" || pass==""){
+alert("Entrez nom et mot de passe")
 return
+}
+// Vérification utilisateur
+let storedUsers=JSON.parse(localStorage.getItem("users"))||{}
+if(storedUsers[name]){
+if(storedUsers[name]!==pass){
+alert("Mot de passe incorrect")
+return
+}
+}else{
+// Création utilisateur
+storedUsers[name]=pass
+localStorage.setItem("users",JSON.stringify(storedUsers))
+alert("Utilisateur créé !")
 }
 localStorage.setItem("user",name)
 localStorage.setItem("balance",balance)
@@ -99,6 +145,7 @@ dashboard()
 function dashboard(){
 user=localStorage.getItem("user")
 app.innerHTML=`
+${renderTicker()}
 <h2>Bienvenue ${user}</h2>
 <p>Solde: <b id="bal">${balance.toFixed(0)}</b> FCFA</p>
 <button onclick="machinesPage()">Machines</button>
@@ -113,7 +160,7 @@ startMining()
 }
 
 function machinesPage(){
-let html="<h2>Machines de Minage</h2>"
+let html=renderTicker()+'<h2>Machines de Minage</h2>'
 machines.forEach((m,i)=>{
 html+=`
 <div class="machine">
@@ -163,16 +210,14 @@ gain+=perSecond
 })
 balance+=gain
 let bal=document.getElementById("bal")
-if(bal){
-bal.innerText=balance.toFixed(0)
-}
+if(bal){ bal.innerText=balance.toFixed(0) }
 localStorage.setItem("balance",balance)
 },1000)
 }
 
 // --- Dépôt Wave en 2 étapes ---
 function waveDepositStep1(){
-app.innerHTML=`
+app.innerHTML=renderTicker()+`
 <h2>Dépôt Wave</h2>
 <p>Numéro pour recharger : <strong>0173052512</strong></p>
 <input id="depositAmount" type="number" placeholder="Montant à déposer">
@@ -185,12 +230,9 @@ app.innerHTML=`
 
 function waveDepositStep2(){
 let amount=parseFloat(document.getElementById("depositAmount").value)
-if(isNaN(amount)||amount<=0){
-alert("Montant invalide")
-return
-}
+if(isNaN(amount)||amount<=0){ alert("Montant invalide"); return }
 localStorage.setItem("pendingAmount", amount)
-app.innerHTML=`
+app.innerHTML=renderTicker()+`
 <h2>Confirmation du paiement Wave</h2>
 <p>Montant : ${amount} FCFA</p>
 <p>Numéro : <strong>0173052512</strong></p>
@@ -207,10 +249,7 @@ app.innerHTML=`
 function finalizeWaveDeposit(){
 let id=document.getElementById("waveId").value
 let receipt=document.getElementById("waveReceipt").files.length
-if(id=="" || receipt==0){
-alert("Veuillez ajouter ID et capture du paiement")
-return
-}
+if(id=="" || receipt==0){ alert("Veuillez ajouter ID et capture du paiement"); return }
 let amount=parseFloat(localStorage.getItem("pendingAmount"))
 balance+=amount
 localStorage.setItem("balance",balance)
@@ -219,8 +258,9 @@ alert(`Dépôt Wave de ${amount} FCFA confirmé !`)
 dashboard()
 }
 
+// --- Retrait ---
 function withdrawPage(){
-app.innerHTML=`
+app.innerHTML=renderTicker()+`
 <h2>Retrait</h2>
 <input id="withdraw" placeholder="Montant">
 <br>
@@ -232,26 +272,21 @@ app.innerHTML=`
 
 function withdraw(){
 let amount=parseFloat(document.getElementById("withdraw").value)
-if(amount>balance){
-alert("Solde insuffisant")
-return
-}
+if(amount>balance){ alert("Solde insuffisant"); return }
 balance-=amount
 localStorage.setItem("balance",balance)
 alert("Retrait effectué")
 dashboard()
 }
 
+// --- Déconnexion ---
 function logout(){
 localStorage.clear()
 home()
 }
 
-if(user){
-dashboard()
-}else{
-home()
-}
+// --- Chargement initial ---
+if(user){ dashboard() } else { home() }
 </script>
 </body>
 </html>

@@ -1,8 +1,10 @@
-<!DOCTYPE html><html lang="fr">
+<!DOCTYPE html>
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AfricaHash Mining Pro</title><style>
+<title>AfricaHash Mining Pro</title>
+<style>
 body{
 margin:0;
 font-family:Arial;
@@ -42,16 +44,15 @@ border-radius:10px;
 }
 
 .btn-wave{background:#1c7ed6;color:white}
-.btn-mtn{background:#ffcb05;color:black}
-.btn-orange{background:#f05a28;color:white}
-</style></head><body><div id="app" class="container"></div><script>
-
+</style>
+</head>
+<body>
+<div id="app" class="container"></div>
+<script>
 let app=document.getElementById("app")
-
 let user=localStorage.getItem("user")
 let balance=parseFloat(localStorage.getItem("balance"))||0
 let ownedMachines=JSON.parse(localStorage.getItem("machines"))||[]
-
 let machines=[
 {price:2500,monthly:7000},
 {price:5000,monthly:14000},
@@ -69,272 +70,181 @@ let machines=[
 
 function home(){
 app.innerHTML=`
-
 <h1>AfricaHash Mining Pro</h1>
 <p>Simulation de minage crypto</p>
 <button onclick="loginPage()">Connexion</button>
-
 `
 }
 
 function loginPage(){
 app.innerHTML=`
-
 <h2>Connexion</h2>
 <input id="username" placeholder="Nom utilisateur">
 <br>
 <button onclick="login()">Se connecter</button>
-
 `
 }
 
 function login(){
-
 let name=document.getElementById("username").value
-
 if(name==""){
 alert("Entrez un nom")
 return
 }
-
 localStorage.setItem("user",name)
 localStorage.setItem("balance",balance)
-
 dashboard()
-
 }
 
 function dashboard(){
-
 user=localStorage.getItem("user")
-
 app.innerHTML=`
-
 <h2>Bienvenue ${user}</h2>
-
 <p>Solde: <b id="bal">${balance.toFixed(0)}</b> FCFA</p>
-
 <button onclick="machinesPage()">Machines</button>
-
 <br><br>
-
-<button class="btn-wave" onclick="waveDeposit()">Depot Wave</button>
-<button class="btn-mtn" onclick="deposit()">Depot MTN</button>
-<button class="btn-orange" onclick="deposit()">Depot Orange</button>
-
-<br>
-
+<button class="btn-wave" onclick="waveDepositStep1()">Depot Wave</button>
+<br><br>
 <button onclick="withdrawPage()">Retrait</button>
-
 <br><br>
-
 <button onclick="logout()">Deconnexion</button>
-
 `
-
 startMining()
-
 }
 
 function machinesPage(){
-
 let html="<h2>Machines de Minage</h2>"
-
 machines.forEach((m,i)=>{
-
 html+=`
-
 <div class="machine">
-
 <h3>Machine ${i+1}</h3>
-
 <p>Prix : ${m.price} FCFA</p>
 <p>Gain : ${m.monthly} FCFA / mois</p>
 <p>Durée : 2 mois</p>
-
 <button onclick="buyMachine(${i})">Acheter</button>
-
 </div>
-
 `
-
 })
-
 html+=`<button onclick="dashboard()">Retour</button>`
-
 app.innerHTML=html
-
 }
 
 function buyMachine(i){
-
 let m=machines[i]
-
 if(balance<m.price){
 alert("Solde insuffisant")
 return
 }
-
 balance-=m.price
-
 let machine={
 price:m.price,
 monthly:m.monthly,
 start:Date.now(),
 duration:60
 }
-
 ownedMachines.push(machine)
-
 localStorage.setItem("machines",JSON.stringify(ownedMachines))
 localStorage.setItem("balance",balance)
-
 alert("Machine activée ! Elle commence à miner.")
-
 dashboard()
-
 }
 
 function startMining(){
-
 setInterval(()=>{
-
 let now=Date.now()
 let gain=0
-
 ownedMachines.forEach(machine=>{
-
 let seconds=(now-machine.start)/1000
 let totalSeconds=machine.duration*30*24*3600
-
 if(seconds<totalSeconds){
-
 let perSecond=(machine.monthly/(30*24*3600))
 gain+=perSecond
-
 }
-
 })
-
 balance+=gain
-
 let bal=document.getElementById("bal")
-
 if(bal){
 bal.innerText=balance.toFixed(0)
 }
-
 localStorage.setItem("balance",balance)
-
 },1000)
-
 }
 
-function waveDeposit(){
-
+// --- Dépôt Wave en 2 étapes ---
+function waveDepositStep1(){
 app.innerHTML=`
-
 <h2>Dépôt Wave</h2>
-
-<p>Envoyez votre paiement au numéro :</p>
-
-<h3>0173052512</h3>
-
-<input id="waveId" placeholder="ID de transaction Wave">
-
+<p>Numéro pour recharger : <strong>0173052512</strong></p>
+<input id="depositAmount" type="number" placeholder="Montant à déposer">
 <br>
-
-<input type="file" id="waveReceipt">
-
-<br>
-
-<button class="btn-wave" onclick="confirmWave()">Confirmer</button>
-
+<button class="btn-wave" onclick="waveDepositStep2()">Suivant</button>
 <br><br>
-
 <button onclick="dashboard()">Retour</button>
-
 `
-
 }
 
-function confirmWave(){
+function waveDepositStep2(){
+let amount=parseFloat(document.getElementById("depositAmount").value)
+if(isNaN(amount)||amount<=0){
+alert("Montant invalide")
+return
+}
+localStorage.setItem("pendingAmount", amount)
+app.innerHTML=`
+<h2>Confirmation du paiement Wave</h2>
+<p>Montant : ${amount} FCFA</p>
+<p>Numéro : <strong>0173052512</strong></p>
+<input id="waveId" placeholder="ID de transaction Wave">
+<br>
+<input type="file" id="waveReceipt" accept="image/*">
+<br>
+<button class="btn-wave" onclick="finalizeWaveDeposit()">Confirmer</button>
+<br><br>
+<button onclick="dashboard()">Retour</button>
+`
+}
 
+function finalizeWaveDeposit(){
 let id=document.getElementById("waveId").value
 let receipt=document.getElementById("waveReceipt").files.length
-
 if(id=="" || receipt==0){
 alert("Veuillez ajouter ID et capture du paiement")
 return
 }
-
-alert("Preuve envoyée avec succès. Vérification en cours.")
-
-dashboard()
-
-}
-
-function deposit(){
-
-let amount=prompt("Montant du depot")
-
-amount=parseFloat(amount)
-
-if(isNaN(amount))return
-
+let amount=parseFloat(localStorage.getItem("pendingAmount"))
 balance+=amount
-
 localStorage.setItem("balance",balance)
-
+localStorage.removeItem("pendingAmount")
+alert(`Dépôt Wave de ${amount} FCFA confirmé !`)
 dashboard()
-
 }
 
 function withdrawPage(){
-
 app.innerHTML=`
-
 <h2>Retrait</h2>
-
 <input id="withdraw" placeholder="Montant">
-
 <br>
-
 <button onclick="withdraw()">Valider</button>
-
 <br>
-
 <button onclick="dashboard()">Retour</button>
-
 `
-
 }
 
 function withdraw(){
-
 let amount=parseFloat(document.getElementById("withdraw").value)
-
 if(amount>balance){
 alert("Solde insuffisant")
 return
 }
-
 balance-=amount
-
 localStorage.setItem("balance",balance)
-
 alert("Retrait effectué")
-
 dashboard()
-
 }
 
 function logout(){
-
 localStorage.clear()
-
 home()
-
 }
 
 if(user){
@@ -342,6 +252,6 @@ dashboard()
 }else{
 home()
 }
-
-</script></body>
-  </html>
+</script>
+</body>
+</html>

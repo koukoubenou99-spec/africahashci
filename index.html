@@ -10,14 +10,13 @@
 body{
 margin:0;
 font-family:Arial;
-background:#f5f5f5;
-color:#333;
+background:#f4f4f4;
 }
 
 .container{
 max-width:700px;
-height:92vh;
 margin:auto;
+height:94vh;
 padding:20px;
 background:white;
 border-radius:12px;
@@ -27,9 +26,7 @@ flex-direction:column;
 text-align:center;
 }
 
-h1{
-color:#c89b00;
-}
+h1{color:#c89b00}
 
 button{
 padding:12px 20px;
@@ -51,7 +48,7 @@ width:85%;
 
 .machine{
 background:#fff9db;
-padding:10px;
+padding:12px;
 margin:10px;
 border-radius:10px;
 display:flex;
@@ -60,13 +57,27 @@ gap:10px;
 }
 
 .machine img{
-width:60px;
-height:60px;
+width:65px;
+height:65px;
 }
 
 #machineList{
 overflow-y:auto;
-height:380px;
+height:360px;
+}
+
+.progress{
+width:100%;
+background:#ddd;
+border-radius:6px;
+height:8px;
+margin-top:6px;
+}
+
+.bar{
+height:8px;
+background:gold;
+border-radius:6px;
 }
 
 #ticker{
@@ -82,13 +93,20 @@ white-space:nowrap;
 display:inline-block;
 padding-right:50px;
 animation:ticker 15s linear infinite;
-color:goldenrod;
+color:#a88400;
 font-weight:bold;
 }
 
 @keyframes ticker{
 0%{transform:translateX(100%)}
 100%{transform:translateX(-100%)}
+}
+
+.notice{
+background:#e8ffe8;
+padding:8px;
+border-radius:6px;
+margin-bottom:10px;
 }
 
 .hero img{
@@ -113,8 +131,9 @@ let user=localStorage.getItem("user");
 let balance=parseFloat(localStorage.getItem("balance"))||0;
 
 let ownedMachines=JSON.parse(localStorage.getItem("machines"))||[];
-
 let history=JSON.parse(localStorage.getItem("history"))||[];
+
+let referral=localStorage.getItem("ref")||"";
 
 let machines=[
 
@@ -141,18 +160,11 @@ let tickerMessages=[
 "Samuel a déposé 15 000 FCFA"
 ];
 
-function renderTicker(){
-
+function ticker(){
 let html='<div id="ticker">';
-
-tickerMessages.forEach(m=>{
-html+='<span>'+m+'</span>';
-});
-
+tickerMessages.forEach(m=>{html+='<span>'+m+'</span>'});
 html+='</div>';
-
 return html;
-
 }
 
 function home(){
@@ -166,7 +178,6 @@ app.innerHTML=`
 </div>
 
 <button onclick="loginPage()">Connexion</button>
-
 <button onclick="registerPage()">Inscription</button>
 
 `;
@@ -177,16 +188,15 @@ function registerPage(){
 
 app.innerHTML=`
 
-<h2>Inscription</h2>
+<h2>Créer un compte</h2>
 
 <input id="regUser" placeholder="Nom utilisateur">
-
 <input id="regEmail" placeholder="Email">
+<input id="regPass" placeholder="Mot de passe 6 chiffres">
 
-<input id="regPass" type="password" placeholder="Mot de passe 6 chiffres">
+<input id="refCode" placeholder="Code parrain (optionnel)">
 
-<button onclick="register()">S'inscrire</button>
-
+<button onclick="register()">Créer</button>
 <button onclick="home()">Retour</button>
 
 `;
@@ -198,6 +208,7 @@ function register(){
 let name=document.getElementById("regUser").value;
 let email=document.getElementById("regEmail").value;
 let pass=document.getElementById("regPass").value;
+let ref=document.getElementById("refCode").value;
 
 if(!/^\d{6}$/.test(pass)){
 alert("Mot de passe = 6 chiffres");
@@ -207,6 +218,10 @@ return;
 users[name]={password:pass,email:email};
 
 localStorage.setItem("users",JSON.stringify(users));
+
+if(ref!=""){
+localStorage.setItem("ref",ref);
+}
 
 alert("Compte créé");
 
@@ -221,11 +236,9 @@ app.innerHTML=`
 <h2>Connexion</h2>
 
 <input id="loginUser" placeholder="Nom utilisateur">
-
-<input id="loginPass" type="password" placeholder="Mot de passe">
+<input id="loginPass" placeholder="Mot de passe">
 
 <button onclick="login()">Connexion</button>
-
 <button onclick="home()">Retour</button>
 
 `;
@@ -250,22 +263,20 @@ dashboard();
 
 function dashboard(){
 
-user=localStorage.getItem("user");
-
-app.innerHTML=renderTicker()+`
+app.innerHTML=ticker()+`
 
 <h2>Bienvenue ${user}</h2>
 
 <p>Solde : <b id="bal">${balance.toFixed(0)}</b> FCFA</p>
 
-<button onclick="machinesPage()">Machines de minage</button>
+<div class="notice">
+Ton code parrain : <b>${user}</b>
+</div>
 
-<button onclick="depositPage()">Depot Wave</button>
-
+<button onclick="machinesPage()">Machines</button>
+<button onclick="deposit1()">Depot Wave</button>
 <button onclick="withdrawPage()">Retrait</button>
-
 <button onclick="historyPage()">Historique</button>
-
 <button onclick="logout()">Déconnexion</button>
 
 `;
@@ -276,7 +287,7 @@ startMining();
 
 function machinesPage(){
 
-let html=renderTicker()+`<h2>Machines de Minage</h2><div id="machineList">`;
+let html=ticker()+`<h2>Machines de minage</h2><div id="machineList">`;
 
 machines.forEach((m,i)=>{
 
@@ -288,13 +299,13 @@ html+=`
 
 <div>
 
-<h3>Machine ${i+1}</h3>
+<b>Machine ${i+1}</b>
 
-<p>Prix : ${m.price} FCFA</p>
+<p>${m.price} FCFA</p>
 
-<p>Gain : ${m.monthly} / mois</p>
+<p>${m.monthly} / mois</p>
 
-<button onclick="buyMachine(${i})">Acheter</button>
+<button onclick="buy(${i})">Acheter</button>
 
 </div>
 
@@ -310,7 +321,7 @@ app.innerHTML=html;
 
 }
 
-function buyMachine(i){
+function buy(i){
 
 let m=machines[i];
 
@@ -321,10 +332,9 @@ return;
 
 balance-=m.price;
 
-ownedMachines.push({price:m.price,monthly:m.monthly,start:Date.now()});
+ownedMachines.push({monthly:m.monthly,start:Date.now()});
 
 localStorage.setItem("machines",JSON.stringify(ownedMachines));
-
 localStorage.setItem("balance",balance);
 
 alert("Machine activée");
@@ -340,7 +350,9 @@ setInterval(()=>{
 let gain=0;
 
 ownedMachines.forEach(m=>{
+
 gain+=m.monthly/(30*24*3600);
+
 });
 
 balance+=gain;
@@ -348,55 +360,46 @@ balance+=gain;
 localStorage.setItem("balance",balance);
 
 let bal=document.getElementById("bal");
-
 if(bal)bal.innerText=balance.toFixed(0);
 
 },1000);
 
 }
 
-function depositPage(){
+function deposit1(){
 
-app.innerHTML=renderTicker()+`
+app.innerHTML=ticker()+`
 
 <h2>Dépôt Wave</h2>
 
-<p>Envoyer le paiement au numéro :</p>
-
+<p>Numéro paiement :</p>
 <h3>0173052512</h3>
 
-<input id="amount" type="number" placeholder="Montant">
+<input id="amount" placeholder="Montant">
 
-<button onclick="depositStep2()">Continuer</button>
-
-<button onclick="dashboard()">Retour</button>
+<button onclick="deposit2()">Suivant</button>
 
 `;
 
 }
 
-function depositStep2(){
+function deposit2(){
 
 let amount=document.getElementById("amount").value;
 
-if(amount<=0){
-alert("Montant invalide");
-return;
-}
-
 localStorage.setItem("depositAmount",amount);
 
-app.innerHTML=renderTicker()+`
+app.innerHTML=ticker()+`
 
 <h2>Confirmation paiement</h2>
 
 <p>Montant : ${amount} FCFA</p>
 
-<input id="waveId" placeholder="ID de transaction">
+<input id="waveId" placeholder="ID transaction">
 
-<input type="file" id="waveProof" accept="image/*">
+<input type="file" id="waveProof">
 
-<button onclick="confirmDeposit()">Confirmer dépôt</button>
+<button onclick="confirmDeposit()">Confirmer</button>
 
 `;
 
@@ -405,10 +408,11 @@ app.innerHTML=renderTicker()+`
 function confirmDeposit(){
 
 let id=document.getElementById("waveId").value;
+
 let proof=document.getElementById("waveProof").files.length;
 
 if(id==""||proof==0){
-alert("Veuillez ajouter ID et capture");
+alert("Ajoute ID et capture");
 return;
 }
 
@@ -419,15 +423,13 @@ balance+=amount;
 history.push({
 type:"Depot",
 amount:amount,
-number:"Wave",
 date:new Date().toLocaleString()
 });
 
 localStorage.setItem("history",JSON.stringify(history));
-
 localStorage.setItem("balance",balance);
 
-alert("Dépôt confirmé");
+alert("Depot validé");
 
 dashboard();
 
@@ -435,17 +437,14 @@ dashboard();
 
 function withdrawPage(){
 
-app.innerHTML=renderTicker()+`
+app.innerHTML=ticker()+`
 
 <h2>Retrait</h2>
 
-<input id="withdrawAmount" type="number" placeholder="Montant">
-
-<input id="withdrawNumber" placeholder="Numéro Mobile Money">
+<input id="wAmount" placeholder="Montant">
+<input id="wNumber" placeholder="Numero mobile money">
 
 <button onclick="withdraw()">Valider</button>
-
-<button onclick="dashboard()">Retour</button>
 
 `;
 
@@ -453,9 +452,8 @@ app.innerHTML=renderTicker()+`
 
 function withdraw(){
 
-let amount=parseFloat(document.getElementById("withdrawAmount").value);
-
-let number=document.getElementById("withdrawNumber").value;
+let amount=parseFloat(document.getElementById("wAmount").value);
+let number=document.getElementById("wNumber").value;
 
 if(amount>balance){
 alert("Solde insuffisant");
@@ -472,10 +470,9 @@ date:new Date().toLocaleString()
 });
 
 localStorage.setItem("history",JSON.stringify(history));
-
 localStorage.setItem("balance",balance);
 
-alert("Retrait effectué");
+alert("Retrait enregistré");
 
 dashboard();
 
@@ -483,7 +480,7 @@ dashboard();
 
 function historyPage(){
 
-let html=renderTicker()+`<h2>Historique</h2>`;
+let html=ticker()+`<h2>Historique</h2>`;
 
 history.slice().reverse().forEach(h=>{
 
@@ -491,9 +488,9 @@ html+=`
 
 <div class="machine">
 
-<p><b>${h.type}</b> - ${h.amount} FCFA</p>
+<b>${h.type}</b>
 
-<p>${h.number}</p>
+<p>${h.amount} FCFA</p>
 
 <p>${h.date}</p>
 

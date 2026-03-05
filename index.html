@@ -1,67 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 
 <head>
 
 <meta charset="UTF-8">
-<title>Mining App</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Africa Mining</title>
 
 <style>
 
 body{
 margin:0;
 font-family:Arial;
-background:#f4f4f4;
+background:#fffbe6;
+overflow:hidden;
 }
 
+/* animation oeufs */
+
+.egg{
+position:fixed;
+top:-50px;
+font-size:25px;
+animation:fall linear infinite;
+}
+
+@keyframes fall{
+0%{transform:translateY(-50px)}
+100%{transform:translateY(100vh)}
+}
+
+/* poussin */
+
+.chick{
+position:fixed;
+bottom:10px;
+left:50%;
+transform:translateX(-50%);
+font-size:80px;
+}
+
+/* app */
+
 .container{
-max-width:600px;
-height:90vh;
+
+position:relative;
+z-index:10;
+
+max-width:420px;
 margin:auto;
-margin-top:20px;
+height:100vh;
 background:white;
-border-radius:10px;
-padding:20px;
+padding:15px;
 display:flex;
 flex-direction:column;
-box-shadow:0 0 15px rgba(0,0,0,0.2);
+overflow:hidden;
+
+}
+
+h2{
+text-align:center;
 }
 
 button{
-padding:10px;
-margin:5px;
+
+padding:12px;
+margin:6px 0;
 border:none;
 border-radius:8px;
 background:gold;
 font-weight:bold;
-cursor:pointer;
+
 }
 
 input{
+
 padding:10px;
-margin:5px;
+margin:5px 0;
 border-radius:6px;
 border:1px solid #ccc;
-width:90%;
+
 }
 
 .machine{
-background:#fafafa;
-border-radius:10px;
-padding:10px;
-margin:10px;
+
 display:flex;
-align-items:center;
 gap:10px;
+background:#fff7cc;
+padding:10px;
+margin:8px 0;
+border-radius:8px;
+
 }
 
 .machine img{
-width:60px;
+width:55px;
+height:55px;
 }
 
 #machineList{
+
 overflow-y:auto;
-height:350px;
+height:320px;
+
+}
+
+.small{
+font-size:13px;
+color:#666;
 }
 
 </style>
@@ -70,9 +117,33 @@ height:350px;
 
 <body>
 
+<div id="eggs"></div>
+
+<div class="chick">🐥</div>
+
 <div class="container" id="app"></div>
 
 <script>
+
+/* animation oeufs */
+
+for(let i=0;i<20;i++){
+
+let e=document.createElement("div")
+
+e.className="egg"
+
+e.innerText="🥚"
+
+e.style.left=Math.random()*100+"%"
+
+e.style.animationDuration=(5+Math.random()*10)+"s"
+
+document.body.appendChild(e)
+
+}
+
+/* base */
 
 let app=document.getElementById("app")
 
@@ -82,130 +153,95 @@ let currentUser=null
 
 let pendingDeposits=[]
 
+/* machines */
+
 let machines=[
 
-{price:2500,monthly:7000,img:"https://i.imgur.com/Fh7XVYY.png"},
-{price:5000,monthly:14000,img:"https://i.imgur.com/7yUvePI.png"},
-{price:10000,monthly:28000,img:"https://i.imgur.com/3ZQ3Z9C.png"},
-{price:15000,monthly:42000,img:"https://i.imgur.com/YkR7JQp.png"},
-{price:20000,monthly:56000,img:"https://i.imgur.com/8M9Qp9H.png"},
-{price:25000,monthly:70000,img:"https://i.imgur.com/gX4C6iP.png"},
-{price:30000,monthly:84000,img:"https://i.imgur.com/xVv7g9M.png"},
-{price:45000,monthly:126000,img:"https://i.imgur.com/Zw7fZQJ.png"},
-{price:75000,monthly:210000,img:"https://i.imgur.com/VmV8cNT.png"},
-{price:100000,monthly:280000,img:"https://i.imgur.com/KjzX8JH.png"},
-{price:150000,monthly:420000,img:"https://i.imgur.com/2oYFJ7h.png"},
-{price:200000,monthly:560000,img:"https://i.imgur.com/OP5nG8v.png"}
+{price:2500,monthly:7000,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+{price:5000,monthly:14000,img:"https://cryptologos.cc/logos/ethereum-eth-logo.png"},
+{price:10000,monthly:28000,img:"https://cryptologos.cc/logos/tether-usdt-logo.png"},
+{price:20000,monthly:56000,img:"https://cryptologos.cc/logos/binance-coin-bnb-logo.png"},
+{price:50000,monthly:150000,img:"https://cryptologos.cc/logos/solana-sol-logo.png"},
+{price:100000,monthly:300000,img:"https://cryptologos.cc/logos/xrp-xrp-logo.png"}
 
 ]
+
+/* accueil */
 
 function home(){
 
 app.innerHTML=`
 
-<h2>Connexion</h2>
+<h2>Africa Mining</h2>
 
-<input id="loginUser" placeholder="Nom utilisateur">
+<input id="user" placeholder="Nom utilisateur">
 
-<input id="loginPass" placeholder="Mot de passe 6 chiffres" type="password">
+<input id="pass" type="password" placeholder="Mot de passe 6 chiffres">
 
-<button onclick="login()">Se connecter</button>
+<button onclick="login()">Connexion</button>
 
-<button onclick="registerPage()">Créer un compte</button>
-
-<br><br>
-
-<button onclick="googleLogin()">Connexion Google</button>
+<button onclick="register()">Créer compte</button>
 
 `
 
 }
 
-function registerPage(){
-
-app.innerHTML=`
-
-<h2>Inscription</h2>
-
-<input id="regUser" placeholder="Nom utilisateur">
-
-<input id="regMail" placeholder="Email Google">
-
-<input id="regPass" placeholder="Mot de passe 6 chiffres" type="password">
-
-<button onclick="register()">S'inscrire</button>
-
-<button onclick="home()">Retour</button>
-
-`
-
-}
+/* inscription */
 
 function register(){
 
-let user=document.getElementById("regUser").value
-let mail=document.getElementById("regMail").value
-let pass=document.getElementById("regPass").value
+let u=document.getElementById("user").value
 
-if(pass.length!=6){
+let p=document.getElementById("pass").value
 
-alert("Mot de passe doit être 6 chiffres")
+if(p.length!=6){
+
+alert("mot de passe = 6 chiffres")
 return
 
 }
 
-if(users[user]){
+users[u]={
 
-alert("Utilisateur existe déjà")
-return
-
-}
-
-users[user]={
-
-email:mail,
-pass:pass,
+pass:p,
 balance:0,
 machines:[]
 
 }
 
-alert("Compte créé")
-
-home()
+alert("compte créé")
 
 }
+
+/* connexion */
 
 function login(){
 
-let user=document.getElementById("loginUser").value
-let pass=document.getElementById("loginPass").value
+let u=document.getElementById("user").value
 
-if(!users[user]){
+let p=document.getElementById("pass").value
 
-alert("Compte inexistant")
+if(!users[u]){
+
+alert("compte introuvable")
 return
 
 }
 
-if(users[user].pass!=pass){
+if(users[u].pass!=p){
 
-alert("Mot de passe incorrect")
+alert("mot de passe incorrect")
 return
 
 }
 
-currentUser=user
+currentUser=u
 
 dashboard()
 
 }
 
-function googleLogin(){
-
-alert("Connexion Google simulée")
-
-}
+/* dashboard */
 
 function dashboard(){
 
@@ -219,17 +255,17 @@ app.innerHTML=`
 
 <button onclick="machinesPage()">Machines</button>
 
-<button onclick="deposit()">Faire un dépôt</button>
+<button onclick="depositPage()">Dépôt</button>
+
+<button onclick="admin()">Admin</button>
 
 <button onclick="logout()">Déconnexion</button>
-
-<br><br>
-
-<button onclick="adminPanel()">Admin</button>
 
 `
 
 }
+
+/* machines */
 
 function machinesPage(){
 
@@ -251,13 +287,13 @@ html+=`
 
 <div>
 
-Machine ${i+1}<br>
-
 Prix : ${m.price} FCFA<br>
 
-Gain : ${m.monthly} FCFA / mois<br>
+Gain : ${m.monthly}/mois
 
-<button onclick="buyMachine(${i})">Acheter</button>
+<br>
+
+<button onclick="buy(${i})">Acheter</button>
 
 </div>
 
@@ -267,19 +303,17 @@ Gain : ${m.monthly} FCFA / mois<br>
 
 })
 
-html+=`
+html+=`</div>
 
-</div>
-
-<button onclick="dashboard()">Retour</button>
-
-`
+<button onclick="dashboard()">Retour</button>`
 
 app.innerHTML=html
 
 }
 
-function buyMachine(i){
+/* achat */
+
+function buy(i){
 
 let u=users[currentUser]
 
@@ -287,8 +321,7 @@ let m=machines[i]
 
 if(u.balance<m.price){
 
-alert("Solde insuffisant")
-
+alert("solde insuffisant")
 return
 
 }
@@ -297,30 +330,65 @@ u.balance-=m.price
 
 u.machines.push(m)
 
-alert("Machine achetée")
+alert("machine activée")
 
 dashboard()
 
 }
 
-function deposit(){
+/* page depot */
 
-let amount=prompt("Montant du dépôt")
+function depositPage(){
 
-if(!amount)return
+app.innerHTML=`
+
+<h2>Dépôt</h2>
+
+<p>Envoyer sur ce numéro :</p>
+
+<h3>Wave : 0173052512</h3>
+
+<input id="amount" placeholder="Montant">
+
+<input id="txid" placeholder="ID Transaction">
+
+<input type="file" id="proof">
+
+<p class="small">ajouter capture écran du paiement</p>
+
+<button onclick="sendDeposit()">Envoyer la demande</button>
+
+<button onclick="dashboard()">Retour</button>
+
+`
+
+}
+
+/* envoyer depot */
+
+function sendDeposit(){
+
+let amount=document.getElementById("amount").value
+
+let tx=document.getElementById("txid").value
 
 pendingDeposits.push({
 
 user:currentUser,
-amount:parseInt(amount)
+amount:amount,
+tx:tx
 
 })
 
-alert("Dépôt envoyé à l'administration")
+alert("dépôt envoyé pour vérification")
+
+dashboard()
 
 }
 
-function adminPanel(){
+/* admin */
+
+function admin(){
 
 let html="<h2>Dépôts en attente</h2>"
 
@@ -328,21 +396,21 @@ pendingDeposits.forEach((d,i)=>{
 
 html+=`
 
-<div>
+<div class="machine">
 
 Utilisateur : ${d.user}<br>
 
-Montant : ${d.amount} FCFA
+Montant : ${d.amount}<br>
 
-<br><br>
+TX : ${d.tx}
 
-<button onclick="validateDeposit(${i})">Valider</button>
+<br>
 
-<button onclick="rejectDeposit(${i})">Refuser</button>
+<button onclick="validate(${i})">Valider</button>
+
+<button onclick="reject(${i})">Refuser</button>
 
 </div>
-
-<hr>
 
 `
 
@@ -354,29 +422,31 @@ app.innerHTML=html
 
 }
 
-function validateDeposit(i){
+/* validation */
+
+function validate(i){
 
 let d=pendingDeposits[i]
 
-users[d.user].balance+=d.amount
+users[d.user].balance+=parseInt(d.amount)
 
 pendingDeposits.splice(i,1)
 
-alert("Dépôt validé")
+alert("dépôt validé")
 
-adminPanel()
+admin()
 
 }
 
-function rejectDeposit(i){
+function reject(i){
 
 pendingDeposits.splice(i,1)
 
-alert("Dépôt refusé")
-
-adminPanel()
+admin()
 
 }
+
+/* logout */
 
 function logout(){
 

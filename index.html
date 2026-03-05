@@ -8,14 +8,23 @@
 body{
 margin:0;
 font-family:Arial;
+overflow:hidden;
 background:#0f172a;
 color:white;
-text-align:center;
+}
+canvas{
+position:fixed;
+top:0;
+left:0;
+z-index:0;
 }
 .container{
+position:relative;
+z-index:10;
 max-width:600px;
 margin:auto;
 padding:20px;
+text-align:center;
 }
 button{
 padding:12px 20px;
@@ -33,14 +42,14 @@ margin:10px;
 width:80%;
 }
 .machine{
-background:#1e293b;
+background:rgba(30,41,59,0.9);
 padding:15px;
 margin:10px;
 border-radius:10px;
 }
-.btn-wave{background:#1c7ed6;color:white}
+.btn-wave{background:#ffd700;color:#000;font-weight:bold}
 #ticker{
-background:#1e293b;
+background:rgba(30,41,59,0.9);
 padding:10px;
 margin-bottom:15px;
 border-radius:10px;
@@ -59,28 +68,82 @@ animation: ticker 15s linear infinite;
 </style>
 </head>
 <body>
-<div id="app" class="container"></div>
+<canvas id="bgCanvas"></canvas>
+<div class="container" id="app"></div>
 <script>
+// --- ARRIÈRE-PLAN: OISEAUX DORÉS & ŒUFS ---
+const canvas=document.getElementById("bgCanvas");
+const ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+class Egg{
+constructor(x,y){
+this.x=x;
+this.y=y;
+this.size=5+Math.random()*5;
+this.speed=1+Math.random()*2;
+}
+update(){this.y+=this.speed;}
+draw(){
+ctx.fillStyle="#FFD700";
+ctx.beginPath();
+ctx.ellipse(this.x,this.y,this.size,this.size*1.2,0,0,2*Math.PI);
+ctx.fill();
+}
+}
+
+class Bird{
+constructor(){
+this.x=Math.random()*canvas.width;
+this.y=Math.random()*canvas.height/2;
+this.vx=1+Math.random()*2;
+this.eggTimer=0;
+this.eggs=[];
+}
+update(){
+this.x+=this.vx;
+this.eggTimer++;
+if(this.eggTimer>200){
+this.eggs.push(new Egg(this.x,this.y));
+this.eggTimer=0;
+}
+if(this.x>canvas.width) this.x=-50;
+this.eggs.forEach((e,i)=>{e.update();if(e.y>canvas.height)e.splice(i,1)});
+}
+draw(){
+ctx.fillStyle="#FFD700";
+ctx.beginPath();
+ctx.moveTo(this.x,this.y);
+ctx.lineTo(this.x-10,this.y+5);
+ctx.lineTo(this.x-5,this.y-5);
+ctx.closePath();
+ctx.fill();
+this.eggs.forEach(e=>e.draw());
+}
+}
+
+let birds=[];
+for(let i=0;i<5;i++) birds.push(new Bird());
+
+function animate(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+birds.forEach(b=>{b.update();b.draw();});
+requestAnimationFrame(animate);
+}
+animate();
+
+// --- INTERFACE UTILISATEUR ---
 let app=document.getElementById("app")
 let user=localStorage.getItem("user")
 let balance=parseFloat(localStorage.getItem("balance"))||0
 let ownedMachines=JSON.parse(localStorage.getItem("machines"))||[]
 let machines=[
-{price:2500,monthly:7000},
-{price:5000,monthly:14000},
-{price:10000,monthly:28000},
-{price:15000,monthly:42000},
-{price:20000,monthly:56000},
-{price:25000,monthly:70000},
-{price:30000,monthly:84000},
-{price:45000,monthly:126000},
-{price:75000,monthly:210000},
-{price:100000,monthly:280000},
-{price:150000,monthly:420000},
-{price:200000,monthly:560000}
+{price:2500,monthly:7000},{price:5000,monthly:14000},{price:10000,monthly:28000},
+{price:15000,monthly:42000},{price:20000,monthly:56000},{price:25000,monthly:70000},
+{price:30000,monthly:84000},{price:45000,monthly:126000},{price:75000,monthly:210000},
+{price:100000,monthly:280000},{price:150000,monthly:420000},{price:200000,monthly:560000}
 ]
-
-// --- Bande de simulation dépôts/retraits ---
 let tickerMessages=[
 "Jean vient de déposer 10 000 FCFA via Wave",
 "Marie a retiré 5 000 FCFA",
@@ -89,167 +152,111 @@ let tickerMessages=[
 "Samuel vient de déposer 15 000 FCFA via Wave"
 ]
 function renderTicker(){
-let tickerHTML='<div id="ticker">'
-tickerMessages.forEach(msg=>{
-tickerHTML+='<span>'+msg+'</span>'
-})
-tickerHTML+='</div>'
-return tickerHTML
+let html='<div id="ticker">'
+tickerMessages.forEach(m=>{html+='<span>'+m+'</span>'})
+html+='</div>'
+return html
 }
 
-// --- Pages ---
-function home(){
-app.innerHTML=`
+// --- Connexion utilisateur ---
+function home(){app.innerHTML=`
 <h1>AfricaHash Mining Pro</h1>
-<p>Simulation de minage crypto</p>
+<p>Simulation professionnelle crypto</p>
 <button onclick="loginPage()">Connexion</button>
-`
-}
-
-function loginPage(){
-app.innerHTML=`
-<h2>Connexion</h2>
-<input id="username" placeholder="Nom utilisateur">
-<br>
-<input id="password" type="password" placeholder="Mot de passe">
-<br>
+`}
+function loginPage(){app.innerHTML=`
+<input id="username" placeholder="Nom utilisateur"><br>
+<input id="password" type="password" placeholder="Mot de passe"><br>
 <button onclick="login()">Se connecter</button>
-`
-}
-
+`}
 function login(){
 let name=document.getElementById("username").value
 let pass=document.getElementById("password").value
-if(name=="" || pass==""){
-alert("Entrez nom et mot de passe")
-return
-}
-// Vérification utilisateur
-let storedUsers=JSON.parse(localStorage.getItem("users"))||{}
-if(storedUsers[name]){
-if(storedUsers[name]!==pass){
-alert("Mot de passe incorrect")
-return
-}
-}else{
-// Création utilisateur
-storedUsers[name]=pass
-localStorage.setItem("users",JSON.stringify(storedUsers))
-alert("Utilisateur créé !")
-}
+if(!name||!pass){alert("Nom et mot de passe requis");return}
+let users=JSON.parse(localStorage.getItem("users"))||{}
+if(users[name]){
+if(users[name]!==pass){alert("Mot de passe incorrect");return}
+}else{users[name]=pass;localStorage.setItem("users",JSON.stringify(users));alert("Utilisateur créé !")}
 localStorage.setItem("user",name)
 localStorage.setItem("balance",balance)
 dashboard()
 }
 
+// --- Dashboard ---
 function dashboard(){
 user=localStorage.getItem("user")
-app.innerHTML=`
-${renderTicker()}
+app.innerHTML=renderTicker()+`
 <h2>Bienvenue ${user}</h2>
 <p>Solde: <b id="bal">${balance.toFixed(0)}</b> FCFA</p>
-<button onclick="machinesPage()">Machines</button>
-<br><br>
-<button class="btn-wave" onclick="waveDepositStep1()">Depot Wave</button>
-<br><br>
-<button onclick="withdrawPage()">Retrait</button>
-<br><br>
+<button onclick="machinesPage()">Machines</button><br><br>
+<button class="btn-wave" onclick="waveDepositStep1()">Depot Wave</button><br><br>
+<button onclick="withdrawPage()">Retrait</button><br><br>
 <button onclick="logout()">Deconnexion</button>
 `
 startMining()
 }
 
+// --- Machines ---
 function machinesPage(){
 let html=renderTicker()+'<h2>Machines de Minage</h2>'
-machines.forEach((m,i)=>{
-html+=`
-<div class="machine">
-<h3>Machine ${i+1}</h3>
-<p>Prix : ${m.price} FCFA</p>
-<p>Gain : ${m.monthly} FCFA / mois</p>
-<p>Durée : 2 mois</p>
-<button onclick="buyMachine(${i})">Acheter</button>
-</div>
-`
-})
-html+=`<button onclick="dashboard()">Retour</button>`
+machines.forEach((m,i)=>{html+=`<div class="machine"><h3>Machine ${i+1}</h3><p>Prix : ${m.price} FCFA</p><p>Gain : ${m.monthly} FCFA / mois</p><p>Durée : 2 mois</p><button onclick="buyMachine(${i})">Acheter</button></div>`})
+html+='<button onclick="dashboard()">Retour</button>'
 app.innerHTML=html
 }
-
 function buyMachine(i){
 let m=machines[i]
-if(balance<m.price){
-alert("Solde insuffisant")
-return
-}
+if(balance<m.price){alert("Solde insuffisant");return}
 balance-=m.price
-let machine={
-price:m.price,
-monthly:m.monthly,
-start:Date.now(),
-duration:60
-}
-ownedMachines.push(machine)
+ownedMachines.push({price:m.price,monthly:m.monthly,start:Date.now(),duration:60})
 localStorage.setItem("machines",JSON.stringify(ownedMachines))
 localStorage.setItem("balance",balance)
 alert("Machine activée ! Elle commence à miner.")
 dashboard()
 }
 
+// --- Minage automatique ---
 function startMining(){
 setInterval(()=>{
 let now=Date.now()
 let gain=0
-ownedMachines.forEach(machine=>{
-let seconds=(now-machine.start)/1000
-let totalSeconds=machine.duration*30*24*3600
-if(seconds<totalSeconds){
-let perSecond=(machine.monthly/(30*24*3600))
-gain+=perSecond
-}
+ownedMachines.forEach(m=>{
+let seconds=(now-m.start)/1000
+let total= m.duration*30*24*3600
+if(seconds<total){gain+=m.monthly/(30*24*3600)}
 })
 balance+=gain
 let bal=document.getElementById("bal")
-if(bal){ bal.innerText=balance.toFixed(0) }
+if(bal){bal.innerText=balance.toFixed(0)}
 localStorage.setItem("balance",balance)
 },1000)
 }
 
-// --- Dépôt Wave en 2 étapes ---
+// --- Dépôt Wave 2 étapes ---
 function waveDepositStep1(){
 app.innerHTML=renderTicker()+`
 <h2>Dépôt Wave</h2>
-<p>Numéro pour recharger : <strong>0173052512</strong></p>
-<input id="depositAmount" type="number" placeholder="Montant à déposer">
-<br>
-<button class="btn-wave" onclick="waveDepositStep2()">Suivant</button>
-<br><br>
-<button onclick="dashboard()">Retour</button>
-`
+<p>Numéro : <strong>0173052512</strong></p>
+<input id="depositAmount" type="number" placeholder="Montant à déposer"><br>
+<button class="btn-wave" onclick="waveDepositStep2()">Suivant</button><br><br>
+<button onclick="dashboard()">Retour</button>`
 }
-
 function waveDepositStep2(){
 let amount=parseFloat(document.getElementById("depositAmount").value)
-if(isNaN(amount)||amount<=0){ alert("Montant invalide"); return }
-localStorage.setItem("pendingAmount", amount)
+if(isNaN(amount)||amount<=0){alert("Montant invalide");return}
+localStorage.setItem("pendingAmount",amount)
 app.innerHTML=renderTicker()+`
-<h2>Confirmation du paiement Wave</h2>
+<h2>Confirmation paiement Wave</h2>
 <p>Montant : ${amount} FCFA</p>
 <p>Numéro : <strong>0173052512</strong></p>
-<input id="waveId" placeholder="ID de transaction Wave">
-<br>
-<input type="file" id="waveReceipt" accept="image/*">
-<br>
-<button class="btn-wave" onclick="finalizeWaveDeposit()">Confirmer</button>
-<br><br>
-<button onclick="dashboard()">Retour</button>
-`
+<input id="waveId" placeholder="ID transaction Wave"><br>
+<input type="file" id="waveReceipt" accept="image/*"><br>
+<button class="btn-wave" onclick="finalizeWaveDeposit()">Confirmer</button><br><br>
+<button onclick="dashboard()">Retour</button>`
 }
-
 function finalizeWaveDeposit(){
 let id=document.getElementById("waveId").value
 let receipt=document.getElementById("waveReceipt").files.length
-if(id=="" || receipt==0){ alert("Veuillez ajouter ID et capture du paiement"); return }
+if(id==""||receipt==0){alert("Veuillez ajouter ID et capture");return}
 let amount=parseFloat(localStorage.getItem("pendingAmount"))
 balance+=amount
 localStorage.setItem("balance",balance)
@@ -262,31 +269,27 @@ dashboard()
 function withdrawPage(){
 app.innerHTML=renderTicker()+`
 <h2>Retrait</h2>
-<input id="withdraw" placeholder="Montant">
-<br>
-<button onclick="withdraw()">Valider</button>
-<br>
-<button onclick="dashboard()">Retour</button>
-`
+<input id="withdraw" placeholder="Montant"><br>
+<button onclick="withdraw()">Valider</button><br>
+<button onclick="dashboard()">Retour</button>`
 }
-
 function withdraw(){
 let amount=parseFloat(document.getElementById("withdraw").value)
-if(amount>balance){ alert("Solde insuffisant"); return }
+if(amount>balance){alert("Solde insuffisant");return}
 balance-=amount
 localStorage.setItem("balance",balance)
 alert("Retrait effectué")
 dashboard()
 }
 
-// --- Déconnexion ---
+// --- Logout ---
 function logout(){
 localStorage.clear()
 home()
 }
 
 // --- Chargement initial ---
-if(user){ dashboard() } else { home() }
+if(user){dashboard()}else{home()}
 </script>
 </body>
 </html>

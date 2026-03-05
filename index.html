@@ -9,14 +9,14 @@ body{
 margin:0;
 font-family:Arial;
 overflow:hidden;
-background:#0f172a;
-color:white;
+background:white;
+color:#333;
 }
 canvas{
 position:fixed;
 top:0;
 left:0;
-z-index:0;
+z-index:-1;
 }
 .container{
 position:relative;
@@ -25,6 +25,9 @@ max-width:600px;
 margin:auto;
 padding:20px;
 text-align:center;
+background:rgba(255,255,255,0.95);
+border-radius:12px;
+box-shadow:0 0 15px rgba(0,0,0,0.2);
 }
 button{
 padding:12px 20px;
@@ -33,23 +36,25 @@ border:none;
 border-radius:8px;
 font-weight:bold;
 cursor:pointer;
+background:gold;
+color:#000;
+font-size:16px;
 }
 input{
 padding:10px;
 border-radius:6px;
-border:none;
+border:1px solid #ccc;
 margin:10px;
 width:80%;
 }
 .machine{
-background:rgba(30,41,59,0.9);
+background:rgba(255,215,0,0.1);
 padding:15px;
 margin:10px;
 border-radius:10px;
 }
-.btn-wave{background:#ffd700;color:#000;font-weight:bold}
 #ticker{
-background:rgba(30,41,59,0.9);
+background:rgba(255,215,0,0.1);
 padding:10px;
 margin-bottom:15px;
 border-radius:10px;
@@ -60,6 +65,8 @@ white-space:nowrap;
 display:inline-block;
 padding-right:50px;
 animation: ticker 15s linear infinite;
+color:goldenrod;
+font-weight:bold;
 }
 @keyframes ticker{
 0% {transform: translateX(100%);}
@@ -68,26 +75,23 @@ animation: ticker 15s linear infinite;
 </style>
 </head>
 <body>
+
 <canvas id="bgCanvas"></canvas>
 <div class="container" id="app"></div>
+
 <script>
-// --- ARRIÈRE-PLAN : oiseaux dorés + œufs ---
+// --- Arrière-plan : oiseaux + œufs dorés ---
 const canvas=document.getElementById("bgCanvas");
 const ctx=canvas.getContext("2d");
-function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+function resize(){canvas.width=window.innerWidth; canvas.height=window.innerHeight;}
 window.addEventListener('resize',resize); resize();
 
 class Egg{
-constructor(x,y){
-this.x=x; this.y=y;
-this.size=8+Math.random()*6;
-this.speed=1+Math.random()*2;
-this.glow=Math.random()*0.8+0.2;
-}
+constructor(x,y){this.x=x;this.y=y;this.size=12+Math.random()*10;this.speed=1+Math.random()*2; this.glow=1;}
 update(){this.y+=this.speed;}
 draw(){
 ctx.save();
-ctx.shadowColor="gold"; ctx.shadowBlur=10*this.glow;
+ctx.shadowColor="gold"; ctx.shadowBlur=15*this.glow;
 ctx.fillStyle="#FFD700";
 ctx.beginPath();
 ctx.ellipse(this.x,this.y,this.size,this.size*1.2,0,0,2*Math.PI);
@@ -95,29 +99,22 @@ ctx.fill();
 ctx.restore();
 }
 }
-
 class Bird{
-constructor(){
-this.x=Math.random()*canvas.width;
-this.y=Math.random()*canvas.height/2;
-this.vx=1+Math.random()*3;
-this.eggTimer=0;
-this.eggs=[];
-}
+constructor(){this.x=Math.random()*canvas.width; this.y=Math.random()*canvas.height/2; this.vx=2+Math.random()*3; this.eggTimer=0; this.eggs=[];}
 update(){
 this.x+=this.vx; this.eggTimer++;
-if(this.eggTimer>150){this.eggs.push(new Egg(this.x,this.y+10)); this.eggTimer=0;}
+if(this.eggTimer>120){this.eggs.push(new Egg(this.x,this.y+10)); this.eggTimer=0;}
 if(this.x>canvas.width) this.x=-50;
 this.eggs.forEach((e,i)=>{e.update(); if(e.y>canvas.height) this.eggs.splice(i,1);});
 }
 draw(){
 ctx.save();
-ctx.shadowColor="gold"; ctx.shadowBlur=10;
+ctx.shadowColor="gold"; ctx.shadowBlur=15;
 ctx.fillStyle="gold";
 ctx.beginPath();
 ctx.moveTo(this.x,this.y);
-ctx.lineTo(this.x-15,this.y+7);
-ctx.lineTo(this.x-7,this.y-7);
+ctx.lineTo(this.x-20,this.y+10);
+ctx.lineTo(this.x-10,this.y-10);
 ctx.closePath(); ctx.fill();
 ctx.restore();
 this.eggs.forEach(e=>e.draw());
@@ -125,8 +122,7 @@ this.eggs.forEach(e=>e.draw());
 }
 
 let birds=[];
-for(let i=0;i<7;i++) birds.push(new Bird());
-
+for(let i=0;i<10;i++) birds.push(new Bird());
 function animate(){
 ctx.clearRect(0,0,canvas.width,canvas.height);
 birds.forEach(b=>{b.update();b.draw();});
@@ -134,7 +130,7 @@ requestAnimationFrame(animate);
 }
 animate();
 
-// --- Interface utilisateur ---
+// --- Variables site ---
 let app=document.getElementById("app")
 let user=localStorage.getItem("user")
 let balance=parseFloat(localStorage.getItem("balance"))||0
@@ -146,11 +142,11 @@ let machines=[
 {price:100000,monthly:280000},{price:150000,monthly:420000},{price:200000,monthly:560000}
 ]
 let tickerMessages=[
-"Jean vient de déposer 10 000 FCFA via Wave",
+"Jean a déposé 10 000 FCFA via Wave",
 "Marie a retiré 5 000 FCFA",
-"Kouadio vient de déposer 50 000 FCFA via Wave",
+"Kouadio a déposé 50 000 FCFA via Wave",
 "Fatou a retiré 20 000 FCFA",
-"Samuel vient de déposer 15 000 FCFA via Wave"
+"Samuel a déposé 15 000 FCFA via Wave"
 ]
 function renderTicker(){
 let html='<div id="ticker">'
@@ -190,7 +186,7 @@ app.innerHTML=renderTicker()+`
 <h2>Bienvenue ${user}</h2>
 <p>Solde: <b id="bal">${balance.toFixed(0)}</b> FCFA</p>
 <button onclick="machinesPage()">Machines</button><br><br>
-<button class="btn-wave" onclick="waveDepositStep1()">Depot Wave</button><br><br>
+<button onclick="waveDepositStep1()">Depot Wave</button><br><br>
 <button onclick="withdrawPage()">Retrait</button><br><br>
 <button onclick="logout()">Deconnexion</button>
 `
@@ -232,13 +228,13 @@ localStorage.setItem("balance",balance)
 },1000)
 }
 
-// --- Dépôt Wave 2 étapes ---
+// --- Dépôt Wave ---
 function waveDepositStep1(){
 app.innerHTML=renderTicker()+`
 <h2>Dépôt Wave</h2>
 <p>Numéro : <strong>0173052512</strong></p>
 <input id="depositAmount" type="number" placeholder="Montant à déposer"><br>
-<button class="btn-wave" onclick="waveDepositStep2()">Suivant</button><br><br>
+<button onclick="waveDepositStep2()">Suivant</button><br><br>
 <button onclick="dashboard()">Retour</button>`
 }
 function waveDepositStep2(){
@@ -251,7 +247,7 @@ app.innerHTML=renderTicker()+`
 <p>Numéro : <strong>0173052512</strong></p>
 <input id="waveId" placeholder="ID transaction Wave"><br>
 <input type="file" id="waveReceipt" accept="image/*"><br>
-<button class="btn-wave" onclick="finalizeWaveDeposit()">Confirmer</button><br><br>
+<button onclick="finalizeWaveDeposit()">Confirmer</button><br><br>
 <button onclick="dashboard()">Retour</button>`
 }
 function finalizeWaveDeposit(){

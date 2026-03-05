@@ -4,74 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AfricaHash Mining Pro</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  overflow:hidden;
-  background:white;
-  color:#333;
-}
-canvas{
-  position:fixed;
-  top:0;
-  left:0;
-  z-index:-1;
-}
-.container{
-  position:relative;
-  z-index:10;
-  max-width:600px;
-  margin:auto;
-  padding:20px;
-  text-align:center;
-  background:rgba(255,255,255,0.95);
-  border-radius:12px;
-  box-shadow:0 0 15px rgba(0,0,0,0.2);
-}
-button{
-  padding:12px 20px;
-  margin:5px;
-  border:none;
-  border-radius:8px;
-  font-weight:bold;
-  cursor:pointer;
-  background:gold;
-  color:#000;
-  font-size:16px;
-}
-input{
-  padding:10px;
-  border-radius:6px;
-  border:1px solid #ccc;
-  margin:10px;
-  width:80%;
-}
-.machine{
-  background:rgba(255,215,0,0.1);
-  padding:15px;
-  margin:10px;
-  border-radius:10px;
-}
-#ticker{
-  background:rgba(255,215,0,0.1);
-  padding:10px;
-  margin-bottom:15px;
-  border-radius:10px;
-  overflow:hidden;
-  white-space:nowrap;
-}
-#ticker span{
-  display:inline-block;
-  padding-right:50px;
-  animation: ticker 15s linear infinite;
-  color:goldenrod;
-  font-weight:bold;
-}
-@keyframes ticker{
-  0% {transform: translateX(100%);}
-  100% {transform: translateX(-100%);}
-}
+body{margin:0;font-family:Arial;background:white;color:#333;overflow:hidden;}
+canvas{position:fixed;top:0;left:0;z-index:-1;}
+.container{position:relative;z-index:10;max-width:600px;margin:auto;padding:20px;text-align:center;background:rgba(255,255,255,0.95);border-radius:12px;box-shadow:0 0 15px rgba(0,0,0,0.2);}
+button{padding:12px 20px;margin:5px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;background:gold;color:#000;font-size:16px;}
+input{padding:10px;border-radius:6px;border:1px solid #ccc;margin:10px;width:80%;}
+.machine{background:rgba(255,215,0,0.1);padding:15px;margin:10px;border-radius:10px;}
+#ticker{background:rgba(255,215,0,0.1);padding:10px;margin-bottom:15px;border-radius:10px;overflow:hidden;white-space:nowrap;}
+#ticker span{display:inline-block;padding-right:50px;animation: ticker 15s linear infinite;color:goldenrod;font-weight:bold;}
+@keyframes ticker{0%{transform:translateX(100%);}100%{transform:translateX(-100%);}}
 </style>
 </head>
 <body>
@@ -80,227 +23,136 @@ input{
 <div class="container" id="app"></div>
 
 <script>
-// --- Canvas : oiseaux dorés réalistes + œufs ---
+// --- Canvas oiseaux dorés ---
 const canvas=document.getElementById("bgCanvas");
 const ctx=canvas.getContext("2d");
 function resize(){canvas.width=window.innerWidth; canvas.height=window.innerHeight;}
 window.addEventListener('resize',resize); resize();
 
-class Egg{
-  constructor(x,y){this.x=x; this.y=y; this.size=12+Math.random()*6; this.speed=1+Math.random()*2;}
-  update(){this.y+=this.speed;}
-  draw(){
-    ctx.save();
-    ctx.shadowColor="gold";
-    ctx.shadowBlur=10;
-    ctx.fillStyle="#FFD700";
-    ctx.beginPath();
-    ctx.ellipse(this.x,this.y,this.size,this.size*1.2,0,0,2*Math.PI);
-    ctx.fill();
-    ctx.restore();
-  }
-}
-
-class Bird{
-  constructor(){
-    this.x=Math.random()*canvas.width;
-    this.y=Math.random()*canvas.height/2;
-    this.vx=2+Math.random()*2;
-    this.vy=Math.sin(Math.random()*Math.PI*2)*0.5;
-    this.eggTimer=0;
-    this.eggs=[];
-    this.size=15+Math.random()*10;
-  }
-  update(){
-    this.x+=this.vx;
-    this.y+=this.vy;
-    this.eggTimer++;
-    if(this.eggTimer>150){this.eggs.push(new Egg(this.x,this.y+10)); this.eggTimer=0;}
-    if(this.x>canvas.width) this.x=-50;
-    if(this.y<50 || this.y>canvas.height/2) this.vy*=-1;
-    this.eggs.forEach((e,i)=>{e.update(); if(e.y>canvas.height) this.eggs.splice(i,1);});
-  }
-  draw(){
-    ctx.save();
-    ctx.fillStyle="gold";
-    ctx.shadowColor="gold";
-    ctx.shadowBlur=10;
-    ctx.beginPath();
-    // Corps oiseau simple courbe
-    ctx.moveTo(this.x,this.y);
-    ctx.quadraticCurveTo(this.x+10,this.y-10,this.x+20,this.y);
-    ctx.quadraticCurveTo(this.x+10,this.y+5,this.x,this.y);
-    ctx.fill();
-    ctx.restore();
-    this.eggs.forEach(e=>e.draw());
-  }
-}
-
-let birds=[];
-for(let i=0;i<8;i++) birds.push(new Bird());
-
-function animate(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  birds.forEach(b=>{b.update(); b.draw();});
-  requestAnimationFrame(animate);
-}
+class Egg{constructor(x,y){this.x=x;this.y=y;this.size=12+Math.random()*6;this.speed=1+Math.random()*2;}update(){this.y+=this.speed;}draw(){ctx.save();ctx.shadowColor="gold";ctx.shadowBlur=10;ctx.fillStyle="#FFD700";ctx.beginPath();ctx.ellipse(this.x,this.y,this.size,this.size*1.2,0,0,2*Math.PI);ctx.fill();ctx.restore();}}
+class Bird{constructor(){this.x=Math.random()*canvas.width;this.y=Math.random()*canvas.height/2;this.vx=2+Math.random()*2;this.vy=Math.sin(Math.random()*Math.PI*2)*0.5;this.eggTimer=0;this.eggs=[];this.size=15+Math.random()*10;}update(){this.x+=this.vx;this.y+=this.vy;this.eggTimer++;if(this.eggTimer>150){this.eggs.push(new Egg(this.x,this.y+10));this.eggTimer=0;}if(this.x>canvas.width)this.x=-50;if(this.y<50||this.y>canvas.height/2)this.vy*=-1;this.eggs.forEach((e,i)=>{e.update();if(e.y>canvas.height)this.eggs.splice(i,1);});}draw(){ctx.save();ctx.fillStyle="gold";ctx.shadowColor="gold";ctx.shadowBlur=10;ctx.beginPath();ctx.moveTo(this.x,this.y);ctx.quadraticCurveTo(this.x+10,this.y-10,this.x+20,this.y);ctx.quadraticCurveTo(this.x+10,this.y+5,this.x,this.y);ctx.fill();ctx.restore();this.eggs.forEach(e=>e.draw());}}
+let birds=[];for(let i=0;i<8;i++) birds.push(new Bird());
+function animate(){ctx.clearRect(0,0,canvas.width,canvas.height);birds.forEach(b=>{b.update();b.draw();});requestAnimationFrame(animate);}
 animate();
 
 // --- Variables site ---
-let app=document.getElementById("app")
-let user=localStorage.getItem("user")
-let balance=parseFloat(localStorage.getItem("balance"))||0
-let ownedMachines=JSON.parse(localStorage.getItem("machines"))||[]
+let app=document.getElementById("app");
+let users=JSON.parse(localStorage.getItem("users"))||{};
+let user=localStorage.getItem("user");
+let balance=parseFloat(localStorage.getItem("balance"))||0;
+let ownedMachines=JSON.parse(localStorage.getItem("machines"))||[];
 let machines=[
 {price:2500,monthly:7000},{price:5000,monthly:14000},{price:10000,monthly:28000},
 {price:15000,monthly:42000},{price:20000,monthly:56000},{price:25000,monthly:70000},
 {price:30000,monthly:84000},{price:45000,monthly:126000},{price:75000,monthly:210000},
 {price:100000,monthly:280000},{price:150000,monthly:420000},{price:200000,monthly:560000}
-]
+];
 let tickerMessages=[
 "Jean a déposé 10 000 FCFA via Wave",
 "Marie a retiré 5 000 FCFA",
 "Kouadio a déposé 50 000 FCFA via Wave",
 "Fatou a retiré 20 000 FCFA",
 "Samuel a déposé 15 000 FCFA via Wave"
-]
-function renderTicker(){
-let html='<div id="ticker">'
-tickerMessages.forEach(m=>{html+='<span>'+m+'</span>'})
-html+='</div>'
-return html
+];
+function renderTicker(){let html='<div id="ticker">';tickerMessages.forEach(m=>{html+='<span>'+m+'</span>'});html+='</div>';return html;}
+
+// --- Pages ---
+function home(){app.innerHTML=`<h1>AfricaHash Mining Pro</h1>
+<button onclick="loginPage()">Connexion</button>
+<button onclick="registerPage()">Inscription</button>`;}
+
+function registerPage(){
+app.innerHTML=`
+<h2>Inscription</h2>
+<input id="regUser" placeholder="Nom utilisateur"><br>
+<input id="regEmail" type="email" placeholder="Email Google"><br>
+<input id="regPass" type="password" placeholder="Mot de passe 6 chiffres"><br>
+<button onclick="register()">S'inscrire</button><br><br>
+<button onclick="home()">Retour</button>
+`;
 }
 
-// --- Connexion ---
-function home(){app.innerHTML=`
-<h1>AfricaHash Mining Pro</h1>
-<button onclick="loginPage()">Connexion</button>
-`}
-function loginPage(){app.innerHTML=`
-<input id="username" placeholder="Nom utilisateur"><br>
-<input id="password" type="password" placeholder="Mot de passe"><br>
-<button onclick="login()">Se connecter</button>
-`}
+function register(){
+let name=document.getElementById("regUser").value.trim();
+let email=document.getElementById("regEmail").value.trim();
+let pass=document.getElementById("regPass").value.trim();
+if(!name||!email||!pass){alert("Tous les champs sont requis");return;}
+if(!/^\d{6}$/.test(pass)){alert("Le mot de passe doit contenir exactement 6 chiffres");return;}
+for(let u in users){if(users[u].email===email||u===name){alert("Nom ou email déjà utilisé");return;}}
+users[name]={password:pass,email:email};
+localStorage.setItem("users",JSON.stringify(users));
+alert("Inscription réussie !");
+home();
+}
+
+function loginPage(){
+app.innerHTML=`
+<h2>Connexion</h2>
+<input id="loginUser" placeholder="Nom utilisateur"><br>
+<input id="loginPass" type="password" placeholder="Mot de passe 6 chiffres"><br>
+<button onclick="login()">Se connecter</button><br><br>
+<div id="g_id_onload"
+     data-client_id="YOUR_GOOGLE_CLIENT_ID"
+     data-login_uri=""
+     data-auto_prompt="false">
+</div>
+<div class="g_id_signin" data-type="standard"></div><br>
+<button onclick="home()">Retour</button>
+`;
+}
+
 function login(){
-let name=document.getElementById("username").value
-let pass=document.getElementById("password").value
-if(!name||!pass){alert("Nom et mot de passe requis");return}
-let users=JSON.parse(localStorage.getItem("users"))||{}
-if(users[name]){
-if(users[name]!==pass){alert("Mot de passe incorrect");return}
-}else{users[name]=pass;localStorage.setItem("users",JSON.stringify(users));alert("Utilisateur créé !")}
-localStorage.setItem("user",name)
-localStorage.setItem("balance",balance)
-dashboard()
+let name=document.getElementById("loginUser").value.trim();
+let pass=document.getElementById("loginPass").value.trim();
+if(!users[name]||users[name].password!==pass){alert("Nom ou mot de passe incorrect");return;}
+localStorage.setItem("user",name);
+localStorage.setItem("balance",balance);
+dashboard();
 }
 
 // --- Dashboard ---
 function dashboard(){
-user=localStorage.getItem("user")
+user=localStorage.getItem("user");
 app.innerHTML=renderTicker()+`
 <h2>Bienvenue ${user}</h2>
 <p>Solde: <b id="bal">${balance.toFixed(0)}</b> FCFA</p>
 <button onclick="machinesPage()">Machines</button><br><br>
 <button onclick="waveDepositStep1()">Depot Wave</button><br><br>
 <button onclick="withdrawPage()">Retrait</button><br><br>
-<button onclick="logout()">Deconnexion</button>
-`
-startMining()
+<button onclick="logout()">Deconnexion</button>`;
+startMining();
 }
 
 // --- Machines ---
-function machinesPage(){
-let html=renderTicker()+'<h2>Machines de Minage</h2>'
-machines.forEach((m,i)=>{html+=`<div class="machine"><h3>Machine ${i+1}</h3><p>Prix : ${m.price} FCFA</p><p>Gain : ${m.monthly} FCFA / mois</p><p>Durée : 2 mois</p><button onclick="buyMachine(${i})">Acheter</button></div>`})
-html+='<button onclick="dashboard()">Retour</button>'
-app.innerHTML=html
-}
-function buyMachine(i){
-let m=machines[i]
-if(balance<m.price){alert("Solde insuffisant");return}
-balance-=m.price
-ownedMachines.push({price:m.price,monthly:m.monthly,start:Date.now(),duration:60})
-localStorage.setItem("machines",JSON.stringify(ownedMachines))
-localStorage.setItem("balance",balance)
-alert("Machine activée ! Elle commence à miner.")
-dashboard()
-}
+function machinesPage(){let html=renderTicker()+'<h2>Machines de Minage</h2>';machines.forEach((m,i)=>{html+=`<div class="machine"><h3>Machine ${i+1}</h3><p>Prix : ${m.price} FCFA</p><p>Gain : ${m.monthly} FCFA / mois</p><p>Durée : 2 mois</p><button onclick="buyMachine(${i})">Acheter</button></div>`});html+='<button onclick="dashboard()">Retour</button>';app.innerHTML=html;}
+function buyMachine(i){let m=machines[i];if(balance<m.price){alert("Solde insuffisant");return;}balance-=m.price;ownedMachines.push({price:m.price,monthly:m.monthly,start:Date.now(),duration:60});localStorage.setItem("machines",JSON.stringify(ownedMachines));localStorage.setItem("balance",balance);alert("Machine activée ! Elle commence à miner.");dashboard();}
 
 // --- Minage automatique ---
-function startMining(){
-setInterval(()=>{
-let now=Date.now()
-let gain=0
-ownedMachines.forEach(m=>{
-let seconds=(now-m.start)/1000
-let total= m.duration*30*24*3600
-if(seconds<total){gain+=m.monthly/(30*24*3600)}
-})
-balance+=gain
-let bal=document.getElementById("bal")
-if(bal){bal.innerText=balance.toFixed(0)}
-localStorage.setItem("balance",balance)
-},1000)
-}
+function startMining(){setInterval(()=>{let now=Date.now();let gain=0;ownedMachines.forEach(m=>{let seconds=(now-m.start)/1000;let total=m.duration*30*24*3600;if(seconds<total){gain+=m.monthly/(30*24*3600)}});balance+=gain;let bal=document.getElementById("bal");if(bal){bal.innerText=balance.toFixed(0);}localStorage.setItem("balance",balance)},1000);}
 
 // --- Dépôt Wave ---
-function waveDepositStep1(){
-app.innerHTML=renderTicker()+`
+function waveDepositStep1(){app.innerHTML=renderTicker()+`
 <h2>Dépôt Wave</h2>
 <p>Numéro : <strong>0173052512</strong></p>
 <input id="depositAmount" type="number" placeholder="Montant à déposer"><br>
 <button onclick="waveDepositStep2()">Suivant</button><br><br>
-<button onclick="dashboard()">Retour</button>`
-}
-function waveDepositStep2(){
-let amount=parseFloat(document.getElementById("depositAmount").value)
-if(isNaN(amount)||amount<=0){alert("Montant invalide");return}
-localStorage.setItem("pendingAmount",amount)
-app.innerHTML=renderTicker()+`
+<button onclick="dashboard()">Retour</button>`;}
+function waveDepositStep2(){let amount=parseFloat(document.getElementById("depositAmount").value);if(isNaN(amount)||amount<=0){alert("Montant invalide");return;}localStorage.setItem("pendingAmount",amount);app.innerHTML=renderTicker()+`
 <h2>Confirmation paiement Wave</h2>
 <p>Montant : ${amount} FCFA</p>
 <p>Numéro : <strong>0173052512</strong></p>
 <input id="waveId" placeholder="ID transaction Wave"><br>
 <input type="file" id="waveReceipt" accept="image/*"><br>
 <button onclick="finalizeWaveDeposit()">Confirmer</button><br><br>
-<button onclick="dashboard()">Retour</button>`
-}
-function finalizeWaveDeposit(){
-let id=document.getElementById("waveId").value
-let receipt=document.getElementById("waveReceipt").files.length
-if(id==""||receipt==0){alert("Veuillez ajouter ID et capture");return}
-let amount=parseFloat(localStorage.getItem("pendingAmount"))
-balance+=amount
-localStorage.setItem("balance",balance)
-localStorage.removeItem("pendingAmount")
-alert(`Dépôt Wave de ${amount} FCFA confirmé !`)
-dashboard()
-}
+<button onclick="dashboard()">Retour</button>`;}
+function finalizeWaveDeposit(){let id=document.getElementById("waveId").value;let receipt=document.getElementById("waveReceipt").files.length;if(id==""||receipt==0){alert("Veuillez ajouter ID et capture");return;}let amount=parseFloat(localStorage.getItem("pendingAmount"));balance+=amount;localStorage.setItem("balance",balance);localStorage.removeItem("pendingAmount");alert(`Dépôt Wave de ${amount} FCFA confirmé !`);dashboard();}
 
 // --- Retrait ---
-function withdrawPage(){
-app.innerHTML=renderTicker()+`
-<h2>Retrait</h2>
-<input id="withdraw" placeholder="Montant"><br>
-<button onclick="withdraw()">Valider</button><br>
-<button onclick="dashboard()">Retour</button>`
-}
-function withdraw(){
-let amount=parseFloat(document.getElementById("withdraw").value)
-if(amount>balance){alert("Solde insuffisant");return}
-balance-=amount
-localStorage.setItem("balance",balance)
-alert("Retrait effectué")
-dashboard()
-}
+function withdrawPage(){app.innerHTML=renderTicker()+`<h2>Retrait</h2><input id="withdraw" placeholder="Montant"><br><button onclick="withdraw()">Valider</button><br><button onclick="dashboard()">Retour</button>`;}
+function withdraw(){let amount=parseFloat(document.getElementById("withdraw").value);if(amount>balance){alert("Solde insuffisant");return;}balance-=amount;localStorage.setItem("balance",balance);alert("Retrait effectué");dashboard();}
 
 // --- Logout ---
-function logout(){
-localStorage.clear()
-home()
-}
-
-// --- Chargement initial ---
+function logout(){localStorage.removeItem("user");dashboard();}
 if(user){dashboard()}else{home()}
 </script>
 </body>

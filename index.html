@@ -10,20 +10,13 @@
 body{
 margin:0;
 font-family:Arial;
-background:white;
+background:#f5f5f5;
 color:#333;
 }
 
-canvas{
-position:fixed;
-top:0;
-left:0;
-z-index:-1;
-}
-
 .container{
-max-width:650px;
-height:90vh;
+max-width:700px;
+height:92vh;
 margin:auto;
 padding:20px;
 background:white;
@@ -32,6 +25,10 @@ box-shadow:0 0 15px rgba(0,0,0,0.2);
 display:flex;
 flex-direction:column;
 text-align:center;
+}
+
+h1{
+color:#c89b00;
 }
 
 button{
@@ -69,7 +66,7 @@ height:60px;
 
 #machineList{
 overflow-y:auto;
-height:400px;
+height:380px;
 }
 
 #ticker{
@@ -94,6 +91,12 @@ font-weight:bold;
 100%{transform:translateX(-100%)}
 }
 
+.hero img{
+width:100%;
+border-radius:10px;
+margin-top:15px;
+}
+
 </style>
 </head>
 
@@ -115,18 +118,18 @@ let history=JSON.parse(localStorage.getItem("history"))||[];
 
 let machines=[
 
-{price:2500,monthly:7000,img:"https://cdn-icons-png.flaticon.com/512/3135/3135715.png"},
-{price:5000,monthly:14000,img:"https://cdn-icons-png.flaticon.com/512/1828/1828919.png"},
-{price:10000,monthly:28000,img:"https://cdn-icons-png.flaticon.com/512/3135/3135706.png"},
-{price:15000,monthly:42000,img:"https://cdn-icons-png.flaticon.com/512/1828/1828884.png"},
-{price:20000,monthly:56000,img:"https://cdn-icons-png.flaticon.com/512/3135/3135699.png"},
-{price:25000,monthly:70000,img:"https://cdn-icons-png.flaticon.com/512/1828/1828911.png"},
-{price:30000,monthly:84000,img:"https://cdn-icons-png.flaticon.com/512/3135/3135712.png"},
-{price:45000,monthly:126000,img:"https://cdn-icons-png.flaticon.com/512/1828/1828888.png"},
-{price:75000,monthly:210000,img:"https://cdn-icons-png.flaticon.com/512/3135/3135690.png"},
-{price:100000,monthly:280000,img:"https://cdn-icons-png.flaticon.com/512/1828/1828915.png"},
-{price:150000,monthly:420000,img:"https://cdn-icons-png.flaticon.com/512/3135/3135696.png"},
-{price:200000,monthly:560000,img:"https://cdn-icons-png.flaticon.com/512/1828/1828921.png"}
+{price:2500,monthly:7000,img:"https://cdn-icons-png.flaticon.com/512/1041/1041876.png"},
+{price:5000,monthly:14000,img:"https://cdn-icons-png.flaticon.com/512/3652/3652191.png"},
+{price:10000,monthly:28000,img:"https://cdn-icons-png.flaticon.com/512/4257/4257483.png"},
+{price:15000,monthly:42000,img:"https://cdn-icons-png.flaticon.com/512/4341/4341139.png"},
+{price:20000,monthly:56000,img:"https://cdn-icons-png.flaticon.com/512/3081/3081559.png"},
+{price:25000,monthly:70000,img:"https://cdn-icons-png.flaticon.com/512/3234/3234829.png"},
+{price:30000,monthly:84000,img:"https://cdn-icons-png.flaticon.com/512/2748/2748558.png"},
+{price:45000,monthly:126000,img:"https://cdn-icons-png.flaticon.com/512/2737/2737326.png"},
+{price:75000,monthly:210000,img:"https://cdn-icons-png.flaticon.com/512/2829/2829810.png"},
+{price:100000,monthly:280000,img:"https://cdn-icons-png.flaticon.com/512/3064/3064197.png"},
+{price:150000,monthly:420000,img:"https://cdn-icons-png.flaticon.com/512/3081/3081582.png"},
+{price:200000,monthly:560000,img:"https://cdn-icons-png.flaticon.com/512/2817/2817314.png"}
 
 ];
 
@@ -157,6 +160,10 @@ function home(){
 app.innerHTML=`
 
 <h1>AfricaHash Mining Pro</h1>
+
+<div class="hero">
+<img src="https://images.unsplash.com/photo-1618477247222-acbdb0e159b3">
+</div>
 
 <button onclick="loginPage()">Connexion</button>
 
@@ -333,9 +340,7 @@ setInterval(()=>{
 let gain=0;
 
 ownedMachines.forEach(m=>{
-
 gain+=m.monthly/(30*24*3600);
-
 });
 
 balance+=gain;
@@ -354,13 +359,15 @@ function depositPage(){
 
 app.innerHTML=renderTicker()+`
 
-<h2>Depot Wave</h2>
+<h2>Dépôt Wave</h2>
 
-<p>Numéro : <b>0173052512</b></p>
+<p>Envoyer le paiement au numéro :</p>
+
+<h3>0173052512</h3>
 
 <input id="amount" type="number" placeholder="Montant">
 
-<button onclick="deposit()">Confirmer</button>
+<button onclick="depositStep2()">Continuer</button>
 
 <button onclick="dashboard()">Retour</button>
 
@@ -368,9 +375,44 @@ app.innerHTML=renderTicker()+`
 
 }
 
-function deposit(){
+function depositStep2(){
 
-let amount=parseFloat(document.getElementById("amount").value);
+let amount=document.getElementById("amount").value;
+
+if(amount<=0){
+alert("Montant invalide");
+return;
+}
+
+localStorage.setItem("depositAmount",amount);
+
+app.innerHTML=renderTicker()+`
+
+<h2>Confirmation paiement</h2>
+
+<p>Montant : ${amount} FCFA</p>
+
+<input id="waveId" placeholder="ID de transaction">
+
+<input type="file" id="waveProof" accept="image/*">
+
+<button onclick="confirmDeposit()">Confirmer dépôt</button>
+
+`;
+
+}
+
+function confirmDeposit(){
+
+let id=document.getElementById("waveId").value;
+let proof=document.getElementById("waveProof").files.length;
+
+if(id==""||proof==0){
+alert("Veuillez ajouter ID et capture");
+return;
+}
+
+let amount=parseFloat(localStorage.getItem("depositAmount"));
 
 balance+=amount;
 
@@ -385,7 +427,7 @@ localStorage.setItem("history",JSON.stringify(history));
 
 localStorage.setItem("balance",balance);
 
-alert("Depot confirmé");
+alert("Dépôt confirmé");
 
 dashboard();
 
@@ -443,7 +485,7 @@ function historyPage(){
 
 let html=renderTicker()+`<h2>Historique</h2>`;
 
-history.reverse().forEach(h=>{
+history.slice().reverse().forEach(h=>{
 
 html+=`
 

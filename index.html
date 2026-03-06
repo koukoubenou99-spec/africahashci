@@ -1,24 +1,30 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>AfricaHash Mining</title>
+
+<title>Africa Mining</title>
 
 <style>
 
+*{
+box-sizing:border-box;
+font-family:Arial,Helvetica,sans-serif;
+}
+
 body{
 margin:0;
-font-family:Arial;
 background:#fff9cc;
 overflow:hidden;
 }
 
-/* oeufs */
+/* animation oeufs */
 
 .egg{
 position:fixed;
-top:-50px;
+top:-40px;
 font-size:22px;
 animation:fall linear infinite;
 }
@@ -33,118 +39,186 @@ animation:fall linear infinite;
 .chick{
 position:fixed;
 bottom:10px;
-left:50%;
-transform:translateX(-50%);
+right:10px;
 font-size:70px;
 }
 
 /* app */
 
 .container{
+
 position:relative;
-z-index:10;
+z-index:2;
+
 max-width:420px;
 margin:auto;
 height:100vh;
 background:white;
-padding:15px;
+
 display:flex;
 flex-direction:column;
-overflow:hidden;
-border-radius:12px;
+
+padding:15px;
+
 }
 
-h2{text-align:center}
+/* accueil */
+
+.hero img{
+
+width:100%;
+border-radius:10px;
+margin-bottom:10px;
+
+}
+
+h2{
+text-align:center;
+margin:5px 0;
+}
+
+/* inputs */
 
 input{
-padding:12px;
-margin:6px 0;
+
+width:100%;
+padding:11px;
+margin-top:8px;
+
 border-radius:8px;
 border:1px solid #ccc;
+
 }
+
+/* boutons */
 
 button{
+
+width:100%;
 padding:12px;
-margin:6px 0;
+
+margin-top:10px;
+
 border:none;
 border-radius:10px;
+
 background:gold;
 font-weight:bold;
+
 }
 
+/* cartes */
+
+.card{
+
+background:#fff7cc;
+padding:12px;
+border-radius:10px;
+margin-top:10px;
+
+}
+
+/* machines */
+
 .machine{
+
 display:flex;
-gap:12px;
-background:#fff3b0;
+gap:10px;
+
+background:#fff7cc;
 padding:10px;
+
 border-radius:10px;
 margin:8px 0;
+
+align-items:center;
+
 }
 
 .machine img{
+
 width:55px;
 height:55px;
+
 }
 
-#machineList{
+/* scroll machines */
+
+#machines{
+
 overflow-y:auto;
-height:350px;
+flex:1;
+
 }
 
 .small{
+
 font-size:12px;
-color:#666;
+color:#777;
+
 }
 
 </style>
+
 </head>
 
 <body>
 
 <div class="chick">🐥</div>
+
 <div id="app" class="container"></div>
 
-<script type="module">
+<script>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getFirestore,collection,addDoc,getDocs,doc,updateDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-import { getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-import { getStorage,ref,uploadBytes } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-storage.js";
+/* animation oeufs */
 
-/* firebase */
+for(let i=0;i<25;i++){
 
-const firebaseConfig = {
+let egg=document.createElement("div")
 
-apiKey: "AIzaSyBjVlVd_sVyTqHh16hL99eHvlzDqxNIMiE",
-authDomain: "africahash-ci.firebaseapp.com",
-projectId: "africahash-ci",
-storageBucket: "africahash-ci.firebasestorage.app",
-messagingSenderId: "736855761000",
-appId: "1:736855761000:web:5f7a6e51514512e05a1bdd",
-measurementId: "G-2WJZZ669LR"
+egg.className="egg"
+egg.innerText="🥚"
 
-};
+egg.style.left=Math.random()*100+"%"
+egg.style.animationDuration=(5+Math.random()*10)+"s"
 
-const appFirebase = initializeApp(firebaseConfig);
+document.body.appendChild(egg)
 
-const db=getFirestore(appFirebase)
-const auth=getAuth(appFirebase)
-const storage=getStorage(appFirebase)
+}
 
-let app=document.getElementById("app")
+/* stockage local */
 
-let currentUser=null
+let users=JSON.parse(localStorage.getItem("users"))||{}
+let deposits=JSON.parse(localStorage.getItem("deposits"))||[]
+
+let current=null
+
+function save(){
+
+localStorage.setItem("users",JSON.stringify(users))
+localStorage.setItem("deposits",JSON.stringify(deposits))
+
+}
 
 /* machines */
 
 let machines=[
 
-{price:2500,gain:7000,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
-{price:5000,gain:14000,img:"https://cryptologos.cc/logos/ethereum-eth-logo.png"},
-{price:10000,gain:28000,img:"https://cryptologos.cc/logos/tether-usdt-logo.png"},
-{price:20000,gain:56000,img:"https://cryptologos.cc/logos/binance-coin-bnb-logo.png"},
-{price:50000,gain:150000,img:"https://cryptologos.cc/logos/solana-sol-logo.png"},
-{price:100000,gain:300000,img:"https://cryptologos.cc/logos/xrp-xrp-logo.png"}
+{name:"ASIC BTC S1",price:2500,gain:250,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+
+{name:"ASIC BTC S2",price:5000,gain:600,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+
+{name:"ASIC BTC S3",price:10000,gain:1300,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+
+{name:"ASIC BTC S4",price:20000,gain:2800,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+
+{name:"ASIC BTC S5",price:50000,gain:7200,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+
+{name:"ASIC BTC S6",price:100000,gain:15000,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+
+{name:"ASIC BTC S7",price:200000,gain:32000,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+
+{name:"ASIC BTC S8",price:300000,gain:50000,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"}
 
 ]
 
@@ -154,45 +228,76 @@ function home(){
 
 app.innerHTML=`
 
-<h2>AfricaHash Mining</h2>
+<div class="hero">
 
-<input id="email" placeholder="Email">
+<img src="https://upload.wikimedia.org/wikipedia/commons/4/4c/Bitcoin_mining_hardware.jpg">
 
-<input id="pass" type="password" placeholder="Mot de passe">
+</div>
 
-<button onclick="register()">Créer compte</button>
+<h2>Africa Mining</h2>
+
+<input id="user" placeholder="Nom utilisateur">
+
+<input id="pass" type="password" placeholder="Mot de passe 6 chiffres">
 
 <button onclick="login()">Connexion</button>
+
+<button onclick="register()">Créer compte</button>
 
 `
 
 }
 
-window.home=home
-
 /* inscription */
 
-window.register=async function(){
+function register(){
 
-let email=document.getElementById("email").value
-let pass=document.getElementById("pass").value
+let u=user.value
+let p=pass.value
 
-await createUserWithEmailAndPassword(auth,email,pass)
+if(p.length!=6){
 
-alert("compte créé")
+alert("Mot de passe = 6 chiffres")
+return
+
+}
+
+if(users[u]){
+
+alert("Utilisateur existe déjà")
+return
+
+}
+
+users[u]={
+
+pass:p,
+balance:0,
+machines:[]
+
+}
+
+save()
+
+alert("Compte créé")
 
 }
 
 /* connexion */
 
-window.login=async function(){
+function login(){
 
-let email=document.getElementById("email").value
-let pass=document.getElementById("pass").value
+let u=user.value
+let p=pass.value
 
-let res=await signInWithEmailAndPassword(auth,email,pass)
+if(!users[u]||users[u].pass!=p){
 
-currentUser=res.user.uid
+alert("Connexion incorrecte")
+return
+
+}
+
+current=u
 
 dashboard()
 
@@ -200,29 +305,37 @@ dashboard()
 
 /* dashboard */
 
-async function dashboard(){
+function dashboard(){
+
+let u=users[current]
 
 app.innerHTML=`
 
-<h2>Dashboard</h2>
+<h2>Bienvenue ${current}</h2>
 
-<button onclick="machinesPage()">Machines</button>
+<div class="card">
 
-<button onclick="depositPage()">Dépôt</button>
+Solde : <b>${u.balance} FCFA</b>
+
+</div>
+
+<button onclick="machinePage()">Machines de minage</button>
+
+<button onclick="depositPage()">Faire un dépôt</button>
 
 <button onclick="admin()">Admin</button>
+
+<button onclick="logout()">Déconnexion</button>
 
 `
 
 }
 
-window.dashboard=dashboard
-
 /* machines */
 
-window.machinesPage=function(){
+function machinePage(){
 
-let html="<h2>Machines</h2><div id='machineList'>"
+let html=`<h2>Machines de minage</h2><div id="machines">`
 
 machines.forEach((m,i)=>{
 
@@ -234,9 +347,13 @@ html+=`
 
 <div>
 
+<b>${m.name}</b><br>
+
 Prix : ${m.price} FCFA<br>
 
-Gain : ${m.gain}/mois<br>
+Gain journalier : ${m.gain} FCFA
+
+<br>
 
 <button onclick="buy(${i})">Acheter</button>
 
@@ -248,7 +365,9 @@ Gain : ${m.gain}/mois<br>
 
 })
 
-html+="</div><button onclick='dashboard()'>Retour</button>"
+html+=`</div>
+
+<button onclick="dashboard()">Retour</button>`
 
 app.innerHTML=html
 
@@ -256,39 +375,53 @@ app.innerHTML=html
 
 /* achat */
 
-window.buy=async function(i){
+function buy(i){
 
+let u=users[current]
 let m=machines[i]
 
-await addDoc(collection(db,"machines"),{
+if(u.balance<m.price){
 
-user:currentUser,
-price:m.price,
-gain:m.gain
-
-})
-
-alert("machine activée")
+alert("Solde insuffisant")
+return
 
 }
 
-/* depot */
+u.balance-=m.price
 
-window.depositPage=function(){
+u.machines.push(m)
+
+save()
+
+alert("Machine activée")
+
+dashboard()
+
+}
+
+/* dépôt */
+
+function depositPage(){
 
 app.innerHTML=`
 
 <h2>Dépôt</h2>
 
-<p>Envoyer sur :</p>
+<div class="card">
 
-<h3>Wave : 0173052512</h3>
+Envoyer sur :<br>
+
+<b>Wave : 0173052512</b>
+
+</div>
 
 <input id="amount" placeholder="Montant">
 
-<input id="txid" placeholder="ID transaction">
+<input id="tx" placeholder="ID transaction">
 
-<input type="file" id="proof">
+<p class="small">Ajouter capture écran paiement</p>
+
+<input type="file">
 
 <button onclick="sendDeposit()">Envoyer</button>
 
@@ -298,28 +431,21 @@ app.innerHTML=`
 
 }
 
-/* envoyer depot */
+/* envoyer dépôt */
 
-window.sendDeposit=async function(){
+function sendDeposit(){
 
-let amount=document.getElementById("amount").value
-let tx=document.getElementById("txid").value
-let file=document.getElementById("proof").files[0]
+deposits.push({
 
-let storageRef=ref(storage,"proofs/"+Date.now())
-
-await uploadBytes(storageRef,file)
-
-await addDoc(collection(db,"deposits"),{
-
-user:currentUser,
-amount:amount,
-tx:tx,
-status:"pending"
+user:current,
+amount:amount.value,
+tx:tx.value
 
 })
 
-alert("dépôt envoyé")
+save()
+
+alert("Dépôt envoyé pour validation")
 
 dashboard()
 
@@ -327,66 +453,74 @@ dashboard()
 
 /* admin */
 
-window.admin=async function(){
+function admin(){
 
-let html="<h2>Dépôts</h2>"
+let html="<h2>Dépôts en attente</h2>"
 
-let q=await getDocs(collection(db,"deposits"))
-
-q.forEach((docu)=>{
-
-let d=docu.data()
-
-if(d.status=="pending"){
+deposits.forEach((d,i)=>{
 
 html+=`
 
-<div class="machine">
+<div class="card">
 
-${d.user}<br>
+Utilisateur : ${d.user}<br>
 
-${d.amount} FCFA<br>
+Montant : ${d.amount}<br>
 
-${d.tx}
+TX : ${d.tx}
 
 <br>
 
-<button onclick="validate('${docu.id}','${d.amount}','${d.user}')">Valider</button>
+<button onclick="validate(${i})">Valider</button>
+
+<button onclick="reject(${i})">Refuser</button>
 
 </div>
 
 `
 
-}
-
 })
 
-html+="<button onclick='dashboard()'>Retour</button>"
+html+=`<button onclick="dashboard()">Retour</button>`
 
 app.innerHTML=html
 
 }
 
-/* validation */
+/* valider */
 
-window.validate=async function(id,amount,user){
+function validate(i){
 
-await updateDoc(doc(db,"deposits",id),{
+let d=deposits[i]
 
-status:"done"
+users[d.user].balance+=parseInt(d.amount)
 
-})
+deposits.splice(i,1)
 
-await addDoc(collection(db,"balances"),{
-
-user:user,
-amount:amount
-
-})
-
-alert("dépôt validé")
+save()
 
 admin()
+
+}
+
+/* refuser */
+
+function reject(i){
+
+deposits.splice(i,1)
+
+save()
+
+admin()
+
+}
+
+/* logout */
+
+function logout(){
+
+current=null
+home()
 
 }
 

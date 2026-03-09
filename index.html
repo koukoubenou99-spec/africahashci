@@ -16,39 +16,12 @@ font-family:Arial,Helvetica,sans-serif;
 
 body{
 margin:0;
-background:#fff9cc;
-overflow:hidden;
+background:#f5f6fa;
 }
 
-/* animation oeufs */
-
-.egg{
-position:fixed;
-top:-40px;
-font-size:22px;
-animation:fall linear infinite;
-}
-
-@keyframes fall{
-0%{transform:translateY(-50px)}
-100%{transform:translateY(110vh)}
-}
-
-/* poussin */
-
-.chick{
-position:fixed;
-bottom:10px;
-right:10px;
-font-size:70px;
-}
-
-/* app */
+/* conteneur principal */
 
 .container{
-
-position:relative;
-z-index:2;
 
 max-width:420px;
 margin:auto;
@@ -57,36 +30,55 @@ background:white;
 
 display:flex;
 flex-direction:column;
-
-padding:15px;
+padding:20px;
 
 }
 
-/* accueil */
+/* header */
+
+.header{
+
+text-align:center;
+margin-bottom:20px;
+
+}
+
+.header h1{
+
+margin:0;
+color:#222;
+
+}
+
+/* hero image */
 
 .hero img{
 
 width:100%;
-border-radius:10px;
-margin-bottom:10px;
+border-radius:12px;
+margin-bottom:20px;
 
-}
-
-h2{
-text-align:center;
-margin:5px 0;
 }
 
 /* inputs */
 
+.input-group{
+
+display:flex;
+gap:8px;
+margin-bottom:10px;
+
+}
+
 input{
 
-width:100%;
-padding:11px;
-margin-top:8px;
+flex:1;
+padding:12px;
 
 border-radius:8px;
 border:1px solid #ccc;
+
+font-size:14px;
 
 }
 
@@ -94,25 +86,30 @@ border:1px solid #ccc;
 
 button{
 
-width:100%;
-padding:12px;
-
-margin-top:10px;
-
+padding:12px 14px;
 border:none;
-border-radius:10px;
 
-background:gold;
+border-radius:8px;
+background:#f1c40f;
+
 font-weight:bold;
+cursor:pointer;
 
 }
 
-/* cartes */
+button.secondary{
+
+background:#eee;
+
+}
+
+/* carte */
 
 .card{
 
-background:#fff7cc;
-padding:12px;
+background:#f9f9f9;
+padding:15px;
+
 border-radius:10px;
 margin-top:10px;
 
@@ -125,11 +122,11 @@ margin-top:10px;
 display:flex;
 gap:10px;
 
-background:#fff7cc;
+background:#fafafa;
 padding:10px;
 
 border-radius:10px;
-margin:8px 0;
+margin:10px 0;
 
 align-items:center;
 
@@ -137,24 +134,8 @@ align-items:center;
 
 .machine img{
 
-width:55px;
-height:55px;
-
-}
-
-/* scroll machines */
-
-#machines{
-
-overflow-y:auto;
-flex:1;
-
-}
-
-.small{
-
-font-size:12px;
-color:#777;
+width:50px;
+height:50px;
 
 }
 
@@ -164,69 +145,32 @@ color:#777;
 
 <body>
 
-<div class="chick">🐥</div>
-
 <div id="app" class="container"></div>
 
 <script>
 
-/* animation oeufs */
+/* base données local */
 
-for(let i=0;i<25;i++){
-
-let egg=document.createElement("div")
-
-egg.className="egg"
-egg.innerText="🥚"
-
-egg.style.left=Math.random()*100+"%"
-egg.style.animationDuration=(5+Math.random()*10)+"s"
-
-document.body.appendChild(egg)
-
-}
-
-/* stockage local */
-
-let users=JSON.parse(localStorage.getItem("users"))||{}
-let deposits=JSON.parse(localStorage.getItem("deposits"))||[]
-
-let current=null
+let users = JSON.parse(localStorage.getItem("users")) || {}
+let current = null
 
 function save(){
 
 localStorage.setItem("users",JSON.stringify(users))
-localStorage.setItem("deposits",JSON.stringify(deposits))
 
 }
-
-/* machines */
-
-let machines=[
-
-{name:"ASIC BTC S1",price:2500,gain:250,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
-
-{name:"ASIC BTC S2",price:5000,gain:600,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
-
-{name:"ASIC BTC S3",price:10000,gain:1300,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
-
-{name:"ASIC BTC S4",price:20000,gain:2800,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
-
-{name:"ASIC BTC S5",price:50000,gain:7200,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
-
-{name:"ASIC BTC S6",price:100000,gain:15000,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
-
-{name:"ASIC BTC S7",price:200000,gain:32000,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
-
-{name:"ASIC BTC S8",price:300000,gain:50000,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"}
-
-]
 
 /* accueil */
 
 function home(){
 
-app.innerHTML=`
+app.innerHTML = `
+
+<div class="header">
+
+<h1>Africa Mining</h1>
+
+</div>
 
 <div class="hero">
 
@@ -234,15 +178,17 @@ app.innerHTML=`
 
 </div>
 
-<h2>Africa Mining</h2>
+<div class="input-group">
 
-<input id="user" placeholder="Nom utilisateur">
+<input id="phone" placeholder="Numéro ivoirien (0700000000)">
 
-<input id="pass" type="password" placeholder="Mot de passe 6 chiffres">
+<input id="pin" type="password" maxlength="4" placeholder="PIN">
 
 <button onclick="login()">Connexion</button>
 
-<button onclick="register()">Créer compte</button>
+</div>
+
+<button class="secondary" onclick="register()">Créer compte</button>
 
 `
 
@@ -252,26 +198,33 @@ app.innerHTML=`
 
 function register(){
 
-let u=user.value
-let p=pass.value
+let phone = document.getElementById("phone").value
+let pin = document.getElementById("pin").value
 
-if(p.length!=6){
+if(phone.length != 10){
 
-alert("Mot de passe = 6 chiffres")
+alert("Numéro ivoirien invalide")
 return
 
 }
 
-if(users[u]){
+if(pin.length != 4){
 
-alert("Utilisateur existe déjà")
+alert("Le code PIN doit être 4 chiffres")
 return
 
 }
 
-users[u]={
+if(users[phone]){
 
-pass:p,
+alert("Compte déjà existant")
+return
+
+}
+
+users[phone] = {
+
+pin:pin,
 balance:0,
 machines:[]
 
@@ -279,7 +232,7 @@ machines:[]
 
 save()
 
-alert("Compte créé")
+alert("Compte créé avec succès")
 
 }
 
@@ -287,17 +240,17 @@ alert("Compte créé")
 
 function login(){
 
-let u=user.value
-let p=pass.value
+let phone = document.getElementById("phone").value
+let pin = document.getElementById("pin").value
 
-if(!users[u]||users[u].pass!=p){
+if(!users[phone] || users[phone].pin != pin){
 
-alert("Connexion incorrecte")
+alert("Numéro ou PIN incorrect")
 return
 
 }
 
-current=u
+current = phone
 
 dashboard()
 
@@ -307,23 +260,25 @@ dashboard()
 
 function dashboard(){
 
-let u=users[current]
+let u = users[current]
 
-app.innerHTML=`
+app.innerHTML = `
 
-<h2>Bienvenue ${current}</h2>
+<div class="header">
+
+<h1>Tableau de bord</h1>
+
+</div>
 
 <div class="card">
+
+Compte : ${current}<br><br>
 
 Solde : <b>${u.balance} FCFA</b>
 
 </div>
 
-<button onclick="machinePage()">Machines de minage</button>
-
-<button onclick="depositPage()">Faire un dépôt</button>
-
-<button onclick="admin()">Admin</button>
+<button onclick="machines()">Machines de minage</button>
 
 <button onclick="logout()">Déconnexion</button>
 
@@ -333,13 +288,25 @@ Solde : <b>${u.balance} FCFA</b>
 
 /* machines */
 
-function machinePage(){
+let machines = [
 
-let html=`<h2>Machines de minage</h2><div id="machines">`
+{name:"ASIC BTC S1",price:2500,gain:250,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+
+{name:"ASIC BTC S2",price:5000,gain:600,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+
+{name:"ASIC BTC S3",price:10000,gain:1300,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+
+{name:"ASIC BTC S4",price:20000,gain:2800,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"}
+
+]
+
+function machines(){
+
+let html = "<h2>Machines</h2>"
 
 machines.forEach((m,i)=>{
 
-html+=`
+html += `
 
 <div class="machine">
 
@@ -351,9 +318,7 @@ html+=`
 
 Prix : ${m.price} FCFA<br>
 
-Gain journalier : ${m.gain} FCFA
-
-<br>
+Gain : ${m.gain} FCFA / jour<br>
 
 <button onclick="buy(${i})">Acheter</button>
 
@@ -365,30 +330,27 @@ Gain journalier : ${m.gain} FCFA
 
 })
 
-html+=`</div>
+html += `<button onclick="dashboard()">Retour</button>`
 
-<button onclick="dashboard()">Retour</button>`
-
-app.innerHTML=html
+app.innerHTML = html
 
 }
 
-/* achat */
+/* acheter */
 
 function buy(i){
 
-let u=users[current]
-let m=machines[i]
+let u = users[current]
+let m = machines[i]
 
-if(u.balance<m.price){
+if(u.balance < m.price){
 
 alert("Solde insuffisant")
 return
 
 }
 
-u.balance-=m.price
-
+u.balance -= m.price
 u.machines.push(m)
 
 save()
@@ -399,127 +361,11 @@ dashboard()
 
 }
 
-/* dépôt */
-
-function depositPage(){
-
-app.innerHTML=`
-
-<h2>Dépôt</h2>
-
-<div class="card">
-
-Envoyer sur :<br>
-
-<b>Wave : 0173052512</b>
-
-</div>
-
-<input id="amount" placeholder="Montant">
-
-<input id="tx" placeholder="ID transaction">
-
-<p class="small">Ajouter capture écran paiement</p>
-
-<input type="file">
-
-<button onclick="sendDeposit()">Envoyer</button>
-
-<button onclick="dashboard()">Retour</button>
-
-`
-
-}
-
-/* envoyer dépôt */
-
-function sendDeposit(){
-
-deposits.push({
-
-user:current,
-amount:amount.value,
-tx:tx.value
-
-})
-
-save()
-
-alert("Dépôt envoyé pour validation")
-
-dashboard()
-
-}
-
-/* admin */
-
-function admin(){
-
-let html="<h2>Dépôts en attente</h2>"
-
-deposits.forEach((d,i)=>{
-
-html+=`
-
-<div class="card">
-
-Utilisateur : ${d.user}<br>
-
-Montant : ${d.amount}<br>
-
-TX : ${d.tx}
-
-<br>
-
-<button onclick="validate(${i})">Valider</button>
-
-<button onclick="reject(${i})">Refuser</button>
-
-</div>
-
-`
-
-})
-
-html+=`<button onclick="dashboard()">Retour</button>`
-
-app.innerHTML=html
-
-}
-
-/* valider */
-
-function validate(i){
-
-let d=deposits[i]
-
-users[d.user].balance+=parseInt(d.amount)
-
-deposits.splice(i,1)
-
-save()
-
-admin()
-
-}
-
-/* refuser */
-
-function reject(i){
-
-deposits.splice(i,1)
-
-save()
-
-admin()
-
-}
-
 /* logout */
 
 function logout(){
 
-current=null
+current = null
 home()
 
 }

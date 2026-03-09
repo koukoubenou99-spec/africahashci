@@ -11,30 +11,27 @@
 
 *{
 box-sizing:border-box;
-font-family:Arial,Helvetica,sans-serif;
+font-family:Arial;
 }
 
 body{
-margin:0;
-background:#f5f6fa;
-}
 
-/* conteneur principal */
+margin:0;
+background-image:url("https://i.imgur.com/0Z8FQ7Q.png");
+background-size:200px;
+background-repeat:repeat;
+
+}
 
 .container{
 
 max-width:420px;
 margin:auto;
-height:100vh;
+min-height:100vh;
 background:white;
-
-display:flex;
-flex-direction:column;
 padding:20px;
 
 }
-
-/* header */
 
 .header{
 
@@ -43,30 +40,18 @@ margin-bottom:20px;
 
 }
 
-.header h1{
-
-margin:0;
-color:#222;
-
-}
-
-/* hero image */
-
 .hero img{
 
 width:100%;
-border-radius:12px;
-margin-bottom:20px;
+border-radius:10px;
 
 }
 
-/* inputs */
-
-.input-group{
+.row{
 
 display:flex;
 gap:8px;
-margin-bottom:10px;
+margin-top:10px;
 
 }
 
@@ -74,68 +59,67 @@ input{
 
 flex:1;
 padding:12px;
-
 border-radius:8px;
 border:1px solid #ccc;
 
-font-size:14px;
-
 }
-
-/* boutons */
 
 button{
 
-padding:12px 14px;
+padding:12px;
 border:none;
-
 border-radius:8px;
-background:#f1c40f;
-
+background:gold;
 font-weight:bold;
 cursor:pointer;
 
 }
 
-button.secondary{
+.full{
 
-background:#eee;
+width:100%;
+margin-top:10px;
 
 }
 
-/* carte */
+.green{
+
+background:#2ecc71;
+color:white;
+
+}
 
 .card{
 
-background:#f9f9f9;
+background:#fafafa;
 padding:15px;
-
 border-radius:10px;
 margin-top:10px;
 
 }
 
-/* machines */
-
 .machine{
 
 display:flex;
 gap:10px;
-
-background:#fafafa;
+background:#fff8dc;
 padding:10px;
-
 border-radius:10px;
-margin:10px 0;
-
+margin-top:10px;
 align-items:center;
 
 }
 
 .machine img{
 
-width:50px;
-height:50px;
+width:60px;
+
+}
+
+.small{
+
+font-size:12px;
+color:#666;
 
 }
 
@@ -149,14 +133,25 @@ height:50px;
 
 <script>
 
-/* base données local */
+const app=document.getElementById("app")
 
-let users = JSON.parse(localStorage.getItem("users")) || {}
-let current = null
+let users=JSON.parse(localStorage.getItem("users"))||{}
+let deposits=JSON.parse(localStorage.getItem("deposits"))||[]
+
+let current=null
 
 function save(){
 
 localStorage.setItem("users",JSON.stringify(users))
+localStorage.setItem("deposits",JSON.stringify(deposits))
+
+}
+
+/* code affiliation */
+
+function generateCode(){
+
+return "AF"+Math.floor(Math.random()*100000)
 
 }
 
@@ -164,7 +159,7 @@ localStorage.setItem("users",JSON.stringify(users))
 
 function home(){
 
-app.innerHTML = `
+app.innerHTML=`
 
 <div class="header">
 
@@ -178,9 +173,9 @@ app.innerHTML = `
 
 </div>
 
-<div class="input-group">
+<div class="row">
 
-<input id="phone" placeholder="Numéro ivoirien (0700000000)">
+<input id="phone" placeholder="Numéro téléphone">
 
 <input id="pin" type="password" maxlength="4" placeholder="PIN">
 
@@ -188,7 +183,7 @@ app.innerHTML = `
 
 </div>
 
-<button class="secondary" onclick="register()">Créer compte</button>
+<button class="full" onclick="registerPage()">S'inscrire</button>
 
 `
 
@@ -196,43 +191,64 @@ app.innerHTML = `
 
 /* inscription */
 
-function register(){
+function registerPage(){
 
-let phone = document.getElementById("phone").value
-let pin = document.getElementById("pin").value
+app.innerHTML=`
 
-if(phone.length != 10){
+<h2>Créer un compte</h2>
 
-alert("Numéro ivoirien invalide")
-return
+<input id="phone" placeholder="Numéro téléphone">
+
+<input id="pin" type="password" maxlength="4" placeholder="PIN 4 chiffres">
+
+<input id="ref" placeholder="Code parrain (facultatif)">
+
+<button class="full" onclick="register()">Créer compte</button>
+
+<button class="full" onclick="home()">Retour</button>
+
+`
 
 }
 
-if(pin.length != 4){
+function register(){
 
-alert("Le code PIN doit être 4 chiffres")
+let phone=document.getElementById("phone").value
+let pin=document.getElementById("pin").value
+let ref=document.getElementById("ref").value
+
+if(pin.length!=4){
+
+alert("PIN = 4 chiffres")
 return
 
 }
 
 if(users[phone]){
 
-alert("Compte déjà existant")
+alert("Compte existe déjà")
 return
 
 }
 
-users[phone] = {
+let code=generateCode()
+
+users[phone]={
 
 pin:pin,
 balance:0,
-machines:[]
+machines:[],
+refCode:code,
+referrer:ref,
+firstDeposit:false
 
 }
 
 save()
 
-alert("Compte créé avec succès")
+alert("Compte créé")
+
+home()
 
 }
 
@@ -240,17 +256,17 @@ alert("Compte créé avec succès")
 
 function login(){
 
-let phone = document.getElementById("phone").value
-let pin = document.getElementById("pin").value
+let phone=document.getElementById("phone").value
+let pin=document.getElementById("pin").value
 
-if(!users[phone] || users[phone].pin != pin){
+if(!users[phone]||users[phone].pin!=pin){
 
-alert("Numéro ou PIN incorrect")
+alert("Connexion incorrecte")
 return
 
 }
 
-current = phone
+current=phone
 
 dashboard()
 
@@ -260,53 +276,112 @@ dashboard()
 
 function dashboard(){
 
-let u = users[current]
+let u=users[current]
 
-app.innerHTML = `
+app.innerHTML=`
 
-<div class="header">
+<h2>Tableau de bord</h2>
 
-<h1>Tableau de bord</h1>
+<div class="card">
+
+Compte : ${current}<br>
+Solde : <b>${u.balance} FCFA</b>
 
 </div>
 
 <div class="card">
 
-Compte : ${current}<br><br>
-
-Solde : <b>${u.balance} FCFA</b>
+Code parrain : <b>${u.refCode}</b>
 
 </div>
 
-<button onclick="machines()">Machines de minage</button>
+<button class="full" onclick="affiliatePage()">Lien d'affiliation</button>
 
-<button onclick="logout()">Déconnexion</button>
+<button class="full" onclick="machinePage()">Machines</button>
+
+<button class="full" onclick="depositPage()">Faire dépôt</button>
+
+<button class="full green" onclick="transactions()">Transactions</button>
+
+<button class="full" onclick="admin()">Admin</button>
+
+<button class="full" onclick="logout()">Déconnexion</button>
 
 `
 
 }
 
+/* page affiliation */
+
+function affiliatePage(){
+
+let code=users[current].refCode
+
+let link=location.href+"?ref="+code
+
+app.innerHTML=`
+
+<h2>Affiliation</h2>
+
+<div class="card">
+
+Ton lien :
+
+<br><br>
+
+<input value="${link}" id="link">
+
+</div>
+
+<button class="full" onclick="copyLink()">Copier lien</button>
+
+<button class="full" onclick="dashboard()">Retour</button>
+
+`
+
+}
+
+function copyLink(){
+
+let link=document.getElementById("link")
+
+link.select()
+
+document.execCommand("copy")
+
+alert("Lien copié")
+
+}
+
 /* machines */
 
-let machines = [
+let machines=[
 
-{name:"ASIC BTC S1",price:2500,gain:250,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+{name:"Ethereum Starter",price:2500,gain:250,img:"https://cryptologos.cc/logos/ethereum-eth-logo.png"},
 
-{name:"ASIC BTC S2",price:5000,gain:600,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+{name:"Bitcoin Basic",price:5000,gain:600,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
 
-{name:"ASIC BTC S3",price:10000,gain:1300,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+{name:"Litecoin Miner",price:10000,gain:1400,img:"https://cryptologos.cc/logos/litecoin-ltc-logo.png"},
 
-{name:"ASIC BTC S4",price:20000,gain:2800,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"}
+{name:"Dogecoin Rig",price:20000,gain:3000,img:"https://cryptologos.cc/logos/dogecoin-doge-logo.png"},
+
+{name:"Solana Node",price:50000,gain:8000,img:"https://cryptologos.cc/logos/solana-sol-logo.png"},
+
+{name:"Ethereum Pro",price:100000,gain:17000,img:"https://cryptologos.cc/logos/ethereum-eth-logo.png"},
+
+{name:"Bitcoin Farm",price:200000,gain:35000,img:"https://cryptologos.cc/logos/bitcoin-btc-logo.png"},
+
+{name:"XRP Mega Farm",price:300000,gain:55000,img:"https://cryptologos.cc/logos/xrp-xrp-logo.png"}
 
 ]
 
-function machines(){
+function machinePage(){
 
-let html = "<h2>Machines</h2>"
+let html="<h2>Machines</h2>"
 
 machines.forEach((m,i)=>{
 
-html += `
+html+=`
 
 <div class="machine">
 
@@ -318,7 +393,9 @@ html += `
 
 Prix : ${m.price} FCFA<br>
 
-Gain : ${m.gain} FCFA / jour<br>
+Gain journalier : ${m.gain}
+
+<br>
 
 <button onclick="buy(${i})">Acheter</button>
 
@@ -330,27 +407,27 @@ Gain : ${m.gain} FCFA / jour<br>
 
 })
 
-html += `<button onclick="dashboard()">Retour</button>`
+html+=`<button class="full" onclick="dashboard()">Retour</button>`
 
-app.innerHTML = html
+app.innerHTML=html
 
 }
 
-/* acheter */
+/* achat */
 
 function buy(i){
 
-let u = users[current]
-let m = machines[i]
+let u=users[current]
+let m=machines[i]
 
-if(u.balance < m.price){
+if(u.balance<m.price){
 
 alert("Solde insuffisant")
 return
 
 }
 
-u.balance -= m.price
+u.balance-=m.price
 u.machines.push(m)
 
 save()
@@ -361,11 +438,184 @@ dashboard()
 
 }
 
-/* logout */
+/* dépôt */
+
+function depositPage(){
+
+app.innerHTML=`
+
+<h2>Dépôt</h2>
+
+<div class="card">
+
+Procédure :
+
+<br><br>
+
+1️⃣ Envoyer via Wave au numéro
+
+<br>
+
+<b>0173052512</b>
+
+<br><br>
+
+2️⃣ Copier l'ID de transaction
+
+<br>
+
+3️⃣ Ajouter capture écran
+
+<br>
+
+4️⃣ Cliquer sur envoyer
+
+</div>
+
+<input id="amount" placeholder="Montant">
+
+<input id="tx" placeholder="ID transaction">
+
+<input type="file">
+
+<button class="full" onclick="sendDeposit()">Envoyer</button>
+
+<button class="full" onclick="dashboard()">Retour</button>
+
+`
+
+}
+
+function sendDeposit(){
+
+let amount=parseInt(document.getElementById("amount").value)
+let tx=document.getElementById("tx").value
+
+deposits.push({
+
+user:current,
+amount:amount,
+tx:tx,
+status:"en attente"
+
+})
+
+save()
+
+alert("Dépôt envoyé")
+
+dashboard()
+
+}
+
+/* transactions */
+
+function transactions(){
+
+let html="<h2>Transactions</h2>"
+
+deposits.forEach(d=>{
+
+if(d.user==current){
+
+html+=`
+
+<div class="card">
+
+Montant : ${d.amount}<br>
+TX : ${d.tx}<br>
+Statut : ${d.status}
+
+</div>
+
+`
+
+}
+
+})
+
+html+=`<button class="full" onclick="dashboard()">Retour</button>`
+
+app.innerHTML=html
+
+}
+
+/* admin */
+
+function admin(){
+
+let html="<h2>Dépôts</h2>"
+
+deposits.forEach((d,i)=>{
+
+html+=`
+
+<div class="card">
+
+Utilisateur : ${d.user}<br>
+Montant : ${d.amount}
+
+<br><br>
+
+<button onclick="validate(${i})">Valider</button>
+
+<button onclick="reject(${i})">Refuser</button>
+
+</div>
+
+`
+
+})
+
+html+=`<button class="full" onclick="dashboard()">Retour</button>`
+
+app.innerHTML=html
+
+}
+
+function validate(i){
+
+let d=deposits[i]
+
+users[d.user].balance+=d.amount
+
+d.status="validé"
+
+/* affiliation */
+
+if(!users[d.user].firstDeposit){
+
+let ref=users[d.user].referrer
+
+for(let u in users){
+
+if(users[u].refCode==ref){
+
+users[u].balance+=d.amount*0.10
+
+}
+
+}
+
+users[d.user].firstDeposit=true
+
+}
+
+save()
+
+}
+
+function reject(i){
+
+deposits[i].status="refusé"
+
+save()
+
+}
 
 function logout(){
 
-current = null
+current=null
 home()
 
 }
